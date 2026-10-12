@@ -40,8 +40,11 @@ def numero_vara(nome_orgao: str | None) -> int | None:
 
 
 def comarca_do_orgao(nome_orgao: str | None, numero_processo: str | None, cfg: Config) -> str | None:
-    """Comarca pelo nome do órgão; se ausente, pelo código de origem do processo (config)."""
-    return comarca(nome_orgao) or cfg.codigos_origem.get(codigo_origem(numero_processo) or "")
+    """Comarca pelo nome do órgão, se for uma comarca conhecida; senão, pelo código de origem do processo."""
+    pelo_nome = comarca(nome_orgao)
+    if pelo_nome and (not cfg.comarcas_conhecidas or chave(pelo_nome) in cfg.comarcas_conhecidas):
+        return pelo_nome
+    return cfg.codigos_origem.get(codigo_origem(numero_processo) or "") or pelo_nome
 
 
 def orgao_admitido(nome_orgao: str | None, cfg: Config, numero_processo: str | None = None) -> bool:
@@ -57,8 +60,9 @@ def orgao_admitido(nome_orgao: str | None, cfg: Config, numero_processo: str | N
         if exigir is not None and not exigir.search(k):
             return False
         numero = numero_vara(nome_orgao)
-        # Vara única: aceita o nome sem número ou como "1ª".
-        return numero in varas if varas else numero in (None, 1)
+        # Nome sem número ("VARA DO SISTEMA DOS JUIZADOS - VALENÇA") equivale à 1ª/única vara.
+        numero = numero or 1
+        return numero in varas if varas else numero == 1
     return cfg.incluir_varas_relacoes_consumo and any(p.search(k) for p in cfg.varas_relacoes_consumo)
 
 
@@ -244,9 +248,19 @@ _DESCRITORES = {
     "REGISTROS", "PUBLICOS", "ACIDENTES", "TRABALHO", "EXECUCOES", "FISCAIS", "INFANCIA", "JUVENTUDE",
     "CEJUSC", "NUCLEO", "AUXILIAR", "BANCARIOS", "CONTRATOS", "EMPRESARIAL", "EMPRESARIAIS", "TURMA",
     "GABINETE", "JUIZ", "JUIZA", "TITULAR", "SUBSTITUTO", "ADJUNTO", "UNIDADE", "JUDICIARIA", "CARTORIO",
-    "SECRETARIA", "SERVENTIA", "PROJUDI", "PJE", "MISTA", "ESPEC", "VSJE", "E",
+    "SECRETARIA", "SERVENTIA", "PROJUDI", "PJE", "MISTA", "ESPEC", "VSJE", "E", "RELATIVOS", "RELATIVO",
+    "AS", "A", "REGISTRO", "ACIDENTE", "FAZ", "CAUSAS", "COMUNS",
 }
 _CONEXOES = {"DE", "DA", "DO", "DOS", "DAS"}
+# Turno da vara em Salvador/Itabuna: "(MATUTINO)", "(VESPERTINO)", "(MAT)", "(VESP)".
+_TURNO = re.compile(r"\(\s*(MAT|VESP|NOT)[A-Z]*\.?\s*\)")
+_ABREVIACOES = [
+    (re.compile(r"\bVIT\.\s*"), "VITÓRIA "),
+    (re.compile(r"\bSTO\.?\s+"), "SANTO "),
+    (re.compile(r"\bSTA\.?\s+"), "SANTA "),
+    (re.compile(r"\bS\.\s*"), "SÃO "),
+    (re.compile(r"\bN\.\s*S(RA)?\.\s*"), "NOSSA SENHORA "),
+]
 _ORDINAL = re.compile(r"^\d+[AO]?$")
 
 
@@ -254,11 +268,16 @@ def comarca(nome_orgao: str | None) -> str | None:
     """Comarca a partir do nome do órgão (mantém a acentuação original)."""
     if not nome_orgao:
         return None
-    k = re.sub(r"\s+", " ", nome_orgao.replace("ª", "A").replace("º", "O").replace("°", "O").upper()).strip()
+    k = nome_orgao.replace("ª", "A").replace("º", "O").replace("°", "O").upper()
+    k = _TURNO.sub(" ", k)
+    k = k.replace("(", " - ").replace(")", " ")  # "JUIZADOS ESPECIAIS (LIVRAMENTO DE NOSSA SENHORA"
+    for abrev, extenso in _ABREVIACOES:
+        k = abrev.sub(extenso, k)
+    k = re.sub(r"\s+", " ", k).strip()
     sa = sem_acentos(k)  # mesmo comprimento de k: as posições coincidem
-    if m := re.search(r"COMARCA\s+D[AEO]S?\s+(.+?)(\s+-.*)?$", sa):
+    if m := re.search(r"COMARCA\s+D[AEO]S?\s+(.+?)(\s*-.*)?$", sa):
         return _titulo(k[m.start(1): m.end(1)])
-    partes = [p.strip() for p in re.split(r"\s+[-–/]\s+|\s*/\s*BA$", k) if p.strip()]
+    partes = [p.strip() for p in re.split(r"\s*[-–]\s*|\s+/\s+|\s*/\s*BA$", k) if p.strip()]
     # "2O JUIZADO ESPECIAL DO CONSUMIDOR - SALVADOR": a última parte sem descritores é a comarca.
     if len(partes) > 1 and not (set(_tokens(partes[-1], sem_acento=True)) & (_DESCRITORES - {"E"})):
         return _titulo(partes[-1])

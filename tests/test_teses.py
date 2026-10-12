@@ -59,6 +59,43 @@ class TestFiltros(unittest.TestCase):
         self.assertFalse(c.orgao_admitido("13ª VARA DE RELAÇÕES DE CONSUMO DE SALVADOR", so_juizados))
         self.assertTrue(c.orgao_admitido("1ª VARA DO SISTEMA DOS JUIZADOS ESPECIAIS DE ALAGOINHAS", so_juizados))
 
+    def test_nomes_reais_do_tjba(self):
+        """Nomes de órgãos como constam do DataJud/TJBA (out/2026)."""
+        ssa = "8000001-10.2025.8.05.0001"
+        casos = [  # (órgão, processo, admitido, comarca)
+            ("20ª VSJE DO CONSUMIDOR (VESPERTINO)", ssa, True, "Salvador"),
+            ("1ª VSJE DO CONSUMIDOR (MATUTINO)", ssa, True, "Salvador"),
+            ("4ª VSJE DE CAUSAS COMUNS (VESPERTINO)", ssa, False, "Salvador"),
+            ("2ª VSJE DA FAZENDA PÚBLICA (VESPERTINO)", ssa, False, "Salvador"),
+            ("1ª VSJE DE TRÂNSITO (MATUTINO)", ssa, False, "Salvador"),
+            ("14ª VARA DE RELACOES DE CONSUMO", ssa, True, "Salvador"),
+            ("3ª VARA DO SISTEMA DOS JUIZADOS - ITABUNA (MAT)", None, True, "Itabuna"),
+            ("1ª VARA DO SISTEMA DOS JUIZADOS - ITABUNA (VESP)", None, True, "Itabuna"),
+            ("2ª VARA DO SISTEMA DOS JUIZADOS- VIT. DA CONQUISTA", None, True, "Vitória da Conquista"),
+            ("VARA DO SISTEMA DOS JUIZADOS-STO ANTÔNIO DE JESUS", None, True, "Santo Antônio de Jesus"),
+            ("Vara do Sistema dos Juizados Especiais (Livramento de Nossa Senhora", None, True, "Livramento de Nossa Senhora"),
+            ("VARA DO SISTEMA DOS JUIZADOS - ALAGOINHAS", None, True, "Alagoinhas"),
+            ("VARA DO SISTEMA DOS JUIZADOS - VALENÇA", None, True, "Valença"),
+            ("VARA DO SISTEMA DOS JUIZADOS - SANTO ESTEVÃO", None, True, "Santo Estevão"),
+            ("1ª VARA JUIZADOS ESPECIAIS DE TEIXEIRA DE FREITAS", None, True, "Teixeira de Freitas"),
+            ("5ª VARA DO SISTEMA DOS JUIZADOS - FEIRA DE SANTANA", None, True, "Feira de Santana"),
+            ("2ª VARA DOS FEITOS RELATIVOS ÀS RELAÇÕES DE CONSUMO, CÍVEIS E COMERCIAIS DA COMARCA DE CANDEIAS",
+             None, True, "Candeias"),
+            ("3ª V DOS FEITOS REL ÀS RELAÇÕES DE CONSUMO, CÍVEIS, COMERCIAIS E FAZ. PÚBLICA DE IRECÊ", None, True, "Irecê"),
+            ("2ª V DOS FEITOS RELATIVOS AS RELAÇÕES DE CONSUMO, CÍVEIS, COMERCIAIS E FAZENDA PÚBLICA DE CAMPO FORMOSO",
+             None, True, "Campo Formoso"),
+            ("3ª V DOS FEITOS DE REL. DE CONSUMO, CÍVEIS, COMERCIAIS E ACIDENTE DE TRABALHO DE CAMAÇARI",
+             None, True, "Camaçari"),
+        ]
+        for orgao, processo, admitido, comarca in casos:
+            self.assertEqual(c.orgao_admitido(orgao, CFG, processo), admitido, orgao)
+            self.assertEqual(c.comarca_do_orgao(orgao, processo, CFG), comarca, orgao)
+
+    def test_tabela_de_codigos_cobre_a_lista(self):
+        conhecidas = {c.chave(v) for v in CFG.codigos_origem.values()}
+        self.assertEqual([k for k in CFG.juizados_consumo if k not in conhecidas], [])
+        self.assertEqual(CFG.codigos_origem["0001"], "Salvador")
+
     def test_lista_de_juizados_completa(self):
         self.assertEqual(len(CFG.juizados_consumo), 40)
         self.assertEqual(sum(max(len(v), 1) for v, _ in CFG.juizados_consumo.values()), 82)

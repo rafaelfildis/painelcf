@@ -24,8 +24,10 @@ varas_relacoes_consumo = [
 ]
 # Como reconhecer um Juizado no nome do órgão. Juizados só entram se estiverem em [juizados_consumo].
 juizado = ['SISTEMA\s+DOS\s+JUIZADOS', 'JUIZADOS?\s+ESPECIA', '\bVSJE\b']
+# Varas mistas "de Relações de Consumo, Cíveis, Comerciais e Fazenda Pública" do interior continuam incluídas;
+# saem apenas os Juizados da Fazenda Pública.
 orgaos_excluir = [
-  'FAZENDA\s+PUBLICA',
+  '(JUIZADOS?\s+ESPECIA\w*|VSJE)\s+(DA\s+)?FAZENDA',
   'TURMA\s+RECURSAL',
 ]
 # Classes processuais admitidas e o rito correspondente.
@@ -78,11 +80,11 @@ juizado = ['JUIZADO\s+ESPECIAL\s+CIVEL', 'PROCEDIMENTO\s+DO\s+JUIZADO']
 "Valença" = { varas = [1] }
 "Vitória da Conquista" = { varas = [1, 2, 3] }
 
-# Quando o nome do órgão não traz a comarca, ela é deduzida do código de origem do número CNJ
-# (últimos 4 dígitos: 8.05.OOOO). Acrescente códigos conforme for confirmando.
+# Quando o nome do órgão não traz a comarca (ex.: "20ª VSJE DO CONSUMIDOR (VESPERTINO)", em Salvador),
+# ela é deduzida do código de origem do número CNJ (8.05.OOOO), pela tabela
+# config/codigos_origem_tjba.json (gerada por scripts/gerar_codigos_origem.py a partir do DataJud).
+# Use esta seção apenas para corrigir ou acrescentar códigos.
 [codigos_origem]
-"0001" = "Salvador"
-"0080" = "Feira de Santana"
 
 # Temas (teses) identificados por palavras-chave no inteiro teor. Uma sentença pode ter vários temas.
 [temas]

@@ -18,7 +18,7 @@ Para cada sentença, identifica:
 | Dado | Como |
 |---|---|
 | Resultado | dispositivo: procedente, parcialmente procedente, improcedente, prescrição/decadência, extinção sem mérito, acordo, embargos de declaração |
-| Comarca e vara | nome do órgão; se ausente, código de origem do número CNJ (`[codigos_origem]`) |
+| Comarca e vara | nome do órgão; se ausente (ex.: "20ª VSJE DO CONSUMIDOR (VESPERTINO)", em Salvador), código de origem do número CNJ pela tabela `config/codigos_origem_tjba.json` |
 | Juiz(a) | assinatura no teor publicado (togado e, no Juizado, também o juiz leigo) |
 | Empresa(s) condenada(s) | polo passivo (`destinatarios` com polo "P"), com unificação de grupos econômicos (`[[empresas]]`) |
 | Dano moral | valor em R$ mais próximo de "danos morais" no dispositivo |
@@ -81,6 +81,17 @@ A API é pública e não exige autenticação. A estrutura das comunicações se
   declaração não substituem a sentença.
 - Para melhorar a precisão, ajuste `config/teses.toml` e rode `reprocessar`. Isso vale para incluir aliases de
   empresas, novos temas e códigos de origem de comarcas.
+
+### Tabela de comarcas por código de origem
+
+`config/codigos_origem_tjba.json` relaciona o código de origem do número CNJ (8.05.**OOOO**) à comarca. A
+tabela é gerada a partir do DataJud e do IBGE, cobre 216 códigos e inclui as 40 comarcas da lista de Juizados.
+Para atualizá-la, rode o comando abaixo. O DataJud não tem bloqueio geográfico, então ele funciona de qualquer
+lugar:
+
+```sh
+python scripts/gerar_codigos_origem.py
+```
 
 ### Testes
 

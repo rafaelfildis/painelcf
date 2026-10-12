@@ -1,5 +1,6 @@
 """Carga da configuração (config/teses.toml)."""
 
+import json
 import re
 import tomllib
 from dataclasses import dataclass, field
@@ -9,6 +10,7 @@ from .texto import chave
 
 RAIZ = Path(__file__).resolve().parents[2]
 CONFIG_PADRAO = RAIZ / "config" / "teses.toml"
+CODIGOS_PADRAO = RAIZ / "config" / "codigos_origem_tjba.json"
 
 
 def _compilar(padroes: list[str]) -> list[re.Pattern]:
@@ -30,6 +32,8 @@ class Config:
     # comarca (chave sem acentos) -> (números de vara admitidos, padrão exigido no nome ou None)
     juizados_consumo: dict[str, tuple[list[int], re.Pattern | None]] = field(default_factory=dict)
     codigos_origem: dict[str, str] = field(default_factory=dict)
+    # Comarcas conhecidas (chave sem acentos): validam o nome deduzido do órgão.
+    comarcas_conhecidas: set[str] = field(default_factory=set)
     classes: dict[str, list[re.Pattern]] = field(default_factory=dict)
     temas: dict[str, list[re.Pattern]] = field(default_factory=dict)
     empresas: list[tuple[str, list[re.Pattern]]] = field(default_factory=list)
@@ -42,6 +46,10 @@ def carregar(caminho: Path | str | None = None) -> Config:
 
     coleta = bruto.get("coleta", {})
     filtros = bruto.get("filtros", {})
+    # Tabela gerada por scripts/gerar_codigos_origem.py; [codigos_origem] do TOML prevalece.
+    codigos = json.loads(CODIGOS_PADRAO.read_text(encoding="utf-8")) if CODIGOS_PADRAO.exists() else {}
+    codigos.update({str(k): v for k, v in bruto.get("codigos_origem", {}).items()})
+    juizados = bruto.get("juizados_consumo", {})
     return Config(
         tribunal=coleta.get("tribunal", "TJBA"),
         modo=coleta.get("modo", "auto"),
@@ -56,9 +64,10 @@ def carregar(caminho: Path | str | None = None) -> Config:
         juizados_consumo={
             chave(comarca): ([int(n) for n in v.get("varas", [])],
                              re.compile(v["exigir"]) if v.get("exigir") else None)
-            for comarca, v in bruto.get("juizados_consumo", {}).items()
+            for comarca, v in juizados.items()
         },
-        codigos_origem={str(k): v for k, v in bruto.get("codigos_origem", {}).items()},
+        codigos_origem=codigos,
+        comarcas_conhecidas={chave(c) for c in [*codigos.values(), *juizados]},
         classes={rito: _compilar(p) for rito, p in filtros.get("classes", {}).items()},
         temas={tema: _compilar(p) for tema, p in bruto.get("temas", {}).items()},
         empresas=[(e["nome"], _compilar(e["padroes"])) for e in bruto.get("empresas", [])],
