@@ -1,0 +1,250 @@
+# Configuração do módulo de teses — Calmon & Freitas Advogados
+#
+# Todas as expressões abaixo são aplicadas sobre o texto em MAIÚSCULAS e SEM ACENTOS
+# (ex.: "Relações de Consumo" vira "RELACOES DE CONSUMO"). Use expressões regulares Python.
+
+[coleta]
+tribunal = "TJBA"
+# "auto" tenta baixar o caderno completo do dia e, se não conseguir, consulta página a página.
+# "paginado" consulta somente página a página; "caderno" exige o caderno.
+modo = "auto"
+itens_por_pagina = 100
+# Pausa entre requisições, em segundos, para não estourar o limite da API (HTTP 429).
+pausa_entre_requisicoes = 1.0
+# Na primeira execução (banco vazio), quantos dias para trás coletar.
+dias_iniciais = 3
+# Limite de dias por execução quando houver dias atrasados a recuperar.
+max_dias_por_execucao = 15
+
+[filtros]
+# Varas de Relações de Consumo (rito comum). Mude para false para analisar somente os Juizados listados abaixo.
+incluir_varas_relacoes_consumo = true
+varas_relacoes_consumo = [
+  'REL(ACOES|ACAO|AC)?\.?\s+(DE\s+)?CONS',   # "VARA DE RELAÇÕES DE CONSUMO" / "V DOS FEITOS DE REL DE CONS CIV E COMERCIAIS"
+]
+# Como reconhecer um Juizado no nome do órgão. Juizados só entram se estiverem em [juizados_consumo].
+juizado = ['SISTEMA\s+DOS\s+JUIZADOS', 'JUIZADOS?\s+ESPECIA', '\bVSJE\b']
+orgaos_excluir = [
+  'FAZENDA\s+PUBLICA',
+  'TURMA\s+RECURSAL',
+]
+# Classes processuais admitidas e o rito correspondente.
+[filtros.classes]
+comum = ['PROCEDIMENTO\s+COMUM']
+juizado = ['JUIZADO\s+ESPECIAL\s+CIVEL', 'PROCEDIMENTO\s+DO\s+JUIZADO']
+
+# Juizados Especiais com atendimento a demandas de consumo (lista do escritório).
+# varas = números das varas admitidas; [] = vara única ("Vara do Sistema dos Juizados Especiais").
+# exigir = expressão que também precisa constar do nome do órgão.
+[juizados_consumo]
+"Alagoinhas" = { varas = [1] }
+"Barreiras" = { varas = [1, 2] }
+"Bom Jesus da Lapa" = { varas = [] }
+"Brumado" = { varas = [] }
+"Camaçari" = { varas = [1, 2] }
+"Canavieiras" = { varas = [] }
+"Cícero Dantas" = { varas = [] }
+"Conceição do Coité" = { varas = [1, 2] }
+"Euclides da Cunha" = { varas = [] }
+"Eunápolis" = { varas = [1, 2] }
+"Feira de Santana" = { varas = [1, 2, 3, 4, 5] }
+"Gandu" = { varas = [] }
+"Guanambi" = { varas = [1] }
+"Ilhéus" = { varas = [1, 2, 3] }
+"Ipiaú" = { varas = [] }
+"Ipirá" = { varas = [] }
+"Irecê" = { varas = [1, 2] }
+"Itaberaba" = { varas = [] }
+"Itabuna" = { varas = [1, 2, 3] }
+"Itamaraju" = { varas = [] }
+"Itapetinga" = { varas = [1] }
+"Jacobina" = { varas = [1, 2] }
+"Jequié" = { varas = [1, 2] }
+"Juazeiro" = { varas = [1, 2] }
+"Lauro de Freitas" = { varas = [1, 2] }
+"Livramento de Nossa Senhora" = { varas = [] }
+"Luís Eduardo Magalhães" = { varas = [] }
+"Paulo Afonso" = { varas = [1, 2] }
+"Porto Seguro" = { varas = [1, 2] }
+"Riachão do Jacuípe" = { varas = [] }
+"Salvador" = { varas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], exigir = 'CONSUMIDOR' }
+"Santa Maria da Vitória" = { varas = [] }
+"Santo Antônio de Jesus" = { varas = [] }
+"Santo Estêvão" = { varas = [] }
+"Senhor do Bonfim" = { varas = [] }
+"Serrinha" = { varas = [1, 2] }
+"Simões Filho" = { varas = [1] }
+"Teixeira de Freitas" = { varas = [1, 2] }
+"Valença" = { varas = [1] }
+"Vitória da Conquista" = { varas = [1, 2, 3] }
+
+# Quando o nome do órgão não traz a comarca, ela é deduzida do código de origem do número CNJ
+# (últimos 4 dígitos: 8.05.OOOO). Acrescente códigos conforme for confirmando.
+[codigos_origem]
+"0001" = "Salvador"
+"0080" = "Feira de Santana"
+
+# Temas (teses) identificados por palavras-chave no inteiro teor. Uma sentença pode ter vários temas.
+[temas]
+"RMC/RCC (cartão consignado)" = ['\bRMC\b', '\bRCC\b', 'RESERVA\s+DE\s+MARGEM', 'CARTAO\s+DE\s+CREDITO\s+CONSIGNADO', 'CARTAO\s+(DE\s+)?BENEFICIO\s+CONSIGNADO']
+"Empréstimo consignado" = ['EMPRESTIMO\s+CONSIGNADO', 'CONSIGNADO\s+(NAO|SEM)\s+(RECONHECIDO|CONTRATADO|AUTORIZADO)', 'DESCONTOS?\s+(NO|EM)\s+(SEU\s+)?BENEFICIO']
+"Tarifas bancárias" = ['TARIFA', 'CESTA\s+(DE\s+)?SERVICOS', 'PACOTE\s+DE\s+SERVICOS', 'CESTA\s+FACIL']
+"Seguro/título não contratado" = ['SEGURO\s+(NAO\s+CONTRATADO|PRESTAMISTA)', 'VENDA\s+CASADA', 'TITULO\s+DE\s+CAPITALIZACAO']
+"Descontos indevidos" = ['DESCONTOS?\s+INDEVID', 'DEBITOS?\s+INDEVID', 'COBRANCAS?\s+INDEVID']
+"Contratação não reconhecida/fraude" = ['NAO\s+RECONHEC', 'FRAUDE', 'FORTUITO\s+INTERNO', 'SUMULA\s+479', 'GOLPE']
+"Negativação indevida" = ['NEGATIVA[CÇ]', 'INSCRICAO\s+INDEVIDA', '\bSPC\b', 'SERASA', 'CADASTROS?\s+(DE\s+)?(RESTRITIVOS|INADIMPLENTES|PROTECAO\s+AO\s+CREDITO)', 'SUMULA\s+385']
+"Conta/cartão bloqueado" = ['BLOQUEIO\s+(DA|DE)\s+(CONTA|CARTAO|VALORES)', 'CONTA\s+BLOQUEADA']
+"Energia elétrica" = ['ENERGIA\s+ELETRICA', 'COELBA', 'NEOENERGIA', 'RECUPERACAO\s+DE\s+CONSUMO', '\bTOI\b', 'SUSPENSAO\s+DO\s+FORNECIMENTO']
+"Água/saneamento" = ['EMBASA', 'FORNECIMENTO\s+DE\s+AGUA', 'SANEAMENTO']
+"Telefonia/internet" = ['TELEFONIA', 'LINHA\s+TELEFONICA', 'INTERNET', 'PLANO\s+(MOVEL|POS[- ]?PAGO|PRE[- ]?PAGO)', 'PORTABILIDADE']
+"Transporte aéreo" = ['VOO', 'COMPANHIA\s+AEREA', 'BAGAGEM', 'OVERBOOKING', 'PASSAGEM\s+AEREA']
+"Plano de saúde" = ['PLANO\s+DE\s+SAUDE', 'OPERADORA\s+DE\s+SAUDE', 'NEGATIVA\s+DE\s+COBERTURA', '\bANS\b']
+"Comércio eletrônico/produto" = ['VICIO\s+DO\s+PRODUTO', 'PRODUTO\s+(NAO\s+ENTREGUE|DEFEITUOSO)', 'COMPRA\s+(ONLINE|PELA\s+INTERNET)', 'MARKETPLACE', 'ATRASO\s+NA\s+ENTREGA']
+"Pix/transferência" = ['\bPIX\b', 'TRANSFERENCIA\s+(BANCARIA|NAO\s+RECONHECIDA)']
+
+# Unificação dos nomes das empresas (polo passivo). A primeira regra que casar vence:
+# coloque as regras mais específicas antes das genéricas. Empresas sem regra aparecem pelo nome normalizado.
+[[empresas]]
+nome = "Bradesco Saúde"
+padroes = ['BRADESCO\s+SAUDE']
+[[empresas]]
+nome = "Bradesco Seguros/Vida e Previdência"
+padroes = ['BRADESCO\s+(SEGUROS|VIDA|CAPITALIZACAO|AUTO)']
+[[empresas]]
+nome = "Banco Bradesco (grupo)"
+padroes = ['BRADESCO', 'BRADESCARD']
+[[empresas]]
+nome = "Itaú Unibanco (grupo)"
+padroes = ['ITAU', 'ITAUCARD', 'HIPERCARD']
+[[empresas]]
+nome = "Santander"
+padroes = ['SANTANDER', 'AYMORE']
+[[empresas]]
+nome = "Banco do Brasil"
+padroes = ['BANCO\s+DO\s+BRASIL']
+[[empresas]]
+nome = "Banco do Nordeste"
+padroes = ['BANCO\s+DO\s+NORDESTE']
+[[empresas]]
+nome = "Caixa Econômica Federal"
+padroes = ['CAIXA\s+ECONOMICA']
+[[empresas]]
+nome = "Banco BMG"
+padroes = ['\bBMG\b']
+[[empresas]]
+nome = "Banco Pan"
+padroes = ['BANCO\s+PAN\b', '\bPAN\s+S\b', 'PANAMERICANO']
+[[empresas]]
+nome = "Banco C6"
+padroes = ['\bC6\b']
+[[empresas]]
+nome = "Nubank"
+padroes = ['NU\s+PAGAMENTOS', 'NUBANK', 'NU\s+FINANCEIRA']
+[[empresas]]
+nome = "Banco Inter"
+padroes = ['BANCO\s+INTER\b']
+[[empresas]]
+nome = "Agibank"
+padroes = ['AGIBANK', 'AGIPLAN']
+[[empresas]]
+nome = "Crefisa"
+padroes = ['CREFISA']
+[[empresas]]
+nome = "Banco Mercantil"
+padroes = ['MERCANTIL\s+DO\s+BRASIL', 'BANCO\s+MERCANTIL']
+[[empresas]]
+nome = "Banco Safra"
+padroes = ['SAFRA']
+[[empresas]]
+nome = "Banco Daycoval"
+padroes = ['DAYCOVAL']
+[[empresas]]
+nome = "Banco BV (Votorantim)"
+padroes = ['VOTORANTIM', 'BANCO\s+BV\b']
+[[empresas]]
+nome = "Banco Cetelem/BNP Paribas"
+padroes = ['CETELEM', 'BNP\s+PARIBAS']
+[[empresas]]
+nome = "Banco Olé/Bonsucesso"
+padroes = ['\bOLE\b', 'BONSUCESSO']
+[[empresas]]
+nome = "Facta Financeira"
+padroes = ['FACTA']
+[[empresas]]
+nome = "Paraná Banco"
+padroes = ['PARANA\s+BANCO']
+[[empresas]]
+nome = "Banco Original"
+padroes = ['BANCO\s+ORIGINAL']
+[[empresas]]
+nome = "Mercado Pago/Mercado Livre"
+padroes = ['MERCADO\s+(PAGO|LIVRE)', 'EBAZAR']
+[[empresas]]
+nome = "PicPay"
+padroes = ['PICPAY']
+[[empresas]]
+nome = "PagSeguro/PagBank"
+padroes = ['PAGSEGURO', 'PAGBANK']
+[[empresas]]
+nome = "Coelba (Neoenergia)"
+padroes = ['COELBA', 'NEOENERGIA', 'COMPANHIA\s+DE\s+ELETRICIDADE\s+DO\s+ESTADO\s+DA\s+BAHIA']
+[[empresas]]
+nome = "Embasa"
+padroes = ['EMBASA', 'EMPRESA\s+BAIANA\s+DE\s+AGUAS']
+[[empresas]]
+nome = "Claro/NET"
+padroes = ['\bCLARO\b', '\bNET\s+SERVICOS', 'EMBRATEL']
+[[empresas]]
+nome = "Vivo (Telefônica Brasil)"
+padroes = ['TELEFONICA', '\bVIVO\b']
+[[empresas]]
+nome = "TIM"
+padroes = ['\bTIM\b']
+[[empresas]]
+nome = "Oi"
+padroes = ['\bOI\b', 'TELEMAR']
+[[empresas]]
+nome = "Sky"
+padroes = ['\bSKY\b']
+[[empresas]]
+nome = "Latam"
+padroes = ['LATAM', '\bTAM\s+LINHAS']
+[[empresas]]
+nome = "Gol"
+padroes = ['\bGOL\s+LINHAS', 'GOL\s+LINHAS\s+AEREAS']
+[[empresas]]
+nome = "Azul"
+padroes = ['AZUL\s+LINHAS']
+[[empresas]]
+nome = "Hapvida"
+padroes = ['HAPVIDA']
+[[empresas]]
+nome = "Unimed"
+padroes = ['UNIMED']
+[[empresas]]
+nome = "SulAmérica"
+padroes = ['SUL\s*AMERICA']
+[[empresas]]
+nome = "Grupo Casas Bahia (Via)"
+padroes = ['CASAS\s+BAHIA', 'VIA\s+VAREJO', '\bVIA\s+S\b', 'NOVA\s+PONTOCOM']
+[[empresas]]
+nome = "Magazine Luiza"
+padroes = ['MAGAZINE\s+LUIZA', 'MAGALU']
+[[empresas]]
+nome = "Americanas"
+padroes = ['AMERICANAS', '\bB2W\b']
+[[empresas]]
+nome = "Amazon"
+padroes = ['AMAZON']
+[[empresas]]
+nome = "Samsung"
+padroes = ['SAMSUNG']
+[[empresas]]
+nome = "Serasa"
+padroes = ['SERASA']
+[[empresas]]
+nome = "Boa Vista (SCPC)"
+padroes = ['BOA\s+VISTA\s+SERVICOS', '\bSCPC\b']
+[[empresas]]
+nome = "Facebook/Meta"
+padroes = ['FACEBOOK', '\bMETA\s+PLATFORMS']

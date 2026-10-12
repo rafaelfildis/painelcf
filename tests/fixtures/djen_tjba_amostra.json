@@ -1,0 +1,304 @@
+{
+ "status": "success",
+ "message": "",
+ "count": 9,
+ "items": [
+  {
+   "id": 900001,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "13ª VARA DE RELAÇÕES DE CONSUMO DE SALVADOR",
+   "texto": "<p>SENTENÇA</p><p>Vistos etc. FULANA DE TAL ajuizou ação declaratória de inexistência de débito c/c repetição de indébito e indenização por danos morais em face de BANCO BRADESCO S.A., alegando descontos indevidos em sua conta a título de tarifa bancária \"CESTA FÁCIL\" jamais contratada. Requereu a condenação em R$ 20.000,00 por danos morais.</p><p>É o relatório. Decido.</p><p>O réu não apresentou contrato assinado pela autora. Telas sistêmicas são prova unilateral. Aplica-se o art. 14 do CDC.</p><p>Ante o exposto, JULGO PROCEDENTES os pedidos para: a) DECLARAR a inexistência da relação jurídica referente à tarifa \"Cesta Fácil\"; b) CONDENAR o réu a restituir, em dobro, os valores descontados, com correção monetária; c) CONDENAR o réu ao pagamento de R$ 5.000,00 (cinco mil reais) a título de indenização por danos morais.</p><p>P.R.I. Salvador/BA, 8 de outubro de 2026.</p><p>MARIA DA CONCEIÇÃO SANTOS</p><p>Juíza de Direito</p>",
+   "numero_processo": "80000011020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=1",
+   "tipoDocumento": "Sentença",
+   "nomeClasse": "PROCEDIMENTO COMUM CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 1,
+   "ativo": true,
+   "hash": "hash1",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000001-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "FULANA DE TAL",
+     "polo": "A",
+     "comunicacao_id": 900001
+    },
+    {
+     "nome": "BANCO BRADESCO S.A.",
+     "polo": "P",
+     "comunicacao_id": 900001
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900002,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "2ª VARA DO SISTEMA DOS JUIZADOS ESPECIAIS DE FEIRA DE SANTANA",
+   "texto": "PROJETO DE SENTENÇA Dispensado o relatório, nos termos do art. 38 da Lei 9.099/95. Trata-se de ação em face da COELBA por suspensão do fornecimento de energia elétrica. Isto posto, JULGO PARCIALMENTE PROCEDENTES os pedidos para condenar a acionada ao pagamento de R$ 3.000,00 a título de danos morais, rejeitando o pedido de danos materiais. Submeto o presente projeto à homologação. JOÃO PEDRO ALMEIDA Juiz Leigo SENTENÇA Ante o exposto, HOMOLOGO, por sentença, o projeto de sentença, para que produza seus jurídicos e legais efeitos. Feira de Santana, 7 de outubro de 2026. Ana Beatriz Costa Lima Juíza de Direito",
+   "numero_processo": "80000021020258050080",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=2",
+   "tipoDocumento": "Sentença",
+   "nomeClasse": "PROCEDIMENTO DO JUIZADO ESPECIAL CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 2,
+   "ativo": true,
+   "hash": "hash2",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000002-10.2025.8.05.0080",
+   "destinatarios": [
+    {
+     "nome": "CICRANO SOUZA",
+     "polo": "A",
+     "comunicacao_id": 900002
+    },
+    {
+     "nome": "COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA COELBA",
+     "polo": "P",
+     "comunicacao_id": 900002
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900003,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "1ª V DOS FEITOS DE REL DE CONS CIV E COMERCIAIS DE SANTO ANTONIO DE JESUS",
+   "texto": "SENTENÇA. Ação em que a autora alega desconhecer cartão de crédito consignado (RMC) junto ao BANCO BMG. O réu juntou contrato assinado e comprovante de TED. Diante do exposto, JULGO IMPROCEDENTES os pedidos formulados na inicial, com resolução do mérito (art. 487, I, CPC). Santo Antônio de Jesus, 6 de outubro de 2026. CARLOS EDUARDO MENEZES Juiz de Direito",
+   "numero_processo": "80000031020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=3",
+   "tipoDocumento": "Sentença",
+   "nomeClasse": "PROCEDIMENTO COMUM CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 3,
+   "ativo": true,
+   "hash": "hash3",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000003-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "BELTRANA DOS SANTOS",
+     "polo": "A",
+     "comunicacao_id": 900003
+    },
+    {
+     "nome": "BANCO BMG SA",
+     "polo": "P",
+     "comunicacao_id": 900003
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900004,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "2ª VARA CÍVEL E COMERCIAL DE SALVADOR",
+   "texto": "SENTENÇA. Ante o exposto, JULGO PROCEDENTE o pedido. Juiz de Direito",
+   "numero_processo": "80000041020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=4",
+   "tipoDocumento": "Sentença",
+   "nomeClasse": "PROCEDIMENTO COMUM CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 4,
+   "ativo": true,
+   "hash": "hash4",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000004-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "X",
+     "polo": "A",
+     "comunicacao_id": 900004
+    },
+    {
+     "nome": "BANCO ITAU UNIBANCO S.A.",
+     "polo": "P",
+     "comunicacao_id": 900004
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900005,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "13ª VARA DE RELAÇÕES DE CONSUMO DE SALVADOR",
+   "texto": "DESPACHO. Intime-se a parte autora para réplica.",
+   "numero_processo": "80000051020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=5",
+   "tipoDocumento": "Despacho",
+   "nomeClasse": "PROCEDIMENTO COMUM CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 5,
+   "ativo": true,
+   "hash": "hash5",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000005-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "FULANA",
+     "polo": "A",
+     "comunicacao_id": 900005
+    },
+    {
+     "nome": "BANCO PAN S.A.",
+     "polo": "P",
+     "comunicacao_id": 900005
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900006,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "13ª VARA DE RELAÇÕES DE CONSUMO DE SALVADOR",
+   "texto": "SENTENÇA. Satisfeita a obrigação, JULGO EXTINTA a execução, nos termos do art. 924, II, do CPC.",
+   "numero_processo": "80000061020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=6",
+   "tipoDocumento": "Sentença",
+   "nomeClasse": "CUMPRIMENTO DE SENTENÇA",
+   "codigoClasse": "7",
+   "numeroComunicacao": 6,
+   "ativo": true,
+   "hash": "hash6",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000006-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "A",
+     "polo": "A",
+     "comunicacao_id": 900006
+    },
+    {
+     "nome": "BANCO PAN S.A.",
+     "polo": "P",
+     "comunicacao_id": 900006
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900007,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "5ª VARA DO SISTEMA DOS JUIZADOS ESPECIAIS DO CONSUMIDOR - SALVADOR",
+   "texto": "SENTENÇA. A parte autora não compareceu à audiência de conciliação. Ante o exposto, JULGO EXTINTO o processo sem resolução do mérito, com fulcro no art. 51, I, da Lei 9.099/95. PAULO ROBERTO NUNES Juiz de Direito",
+   "numero_processo": "80000071020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=7",
+   "tipoDocumento": "Sentença",
+   "nomeClasse": "PROCEDIMENTO DO JUIZADO ESPECIAL CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 7,
+   "ativo": true,
+   "hash": "hash7",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000007-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "ALGUEM",
+     "polo": "A",
+     "comunicacao_id": 900007
+    },
+    {
+     "nome": "TELEFONICA BRASIL S.A.",
+     "polo": "P",
+     "comunicacao_id": 900007
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900008,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "13ª VARA DE RELAÇÕES DE CONSUMO DE SALVADOR",
+   "texto": "SENTENÇA. Trata-se de EMBARGOS DE DECLARAÇÃO opostos pelo réu. Não há omissão. Ante o exposto, REJEITO os embargos. MARIA DA CONCEIÇÃO SANTOS Juíza de Direito",
+   "numero_processo": "80000081020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=8",
+   "tipoDocumento": "Sentença",
+   "nomeClasse": "PROCEDIMENTO COMUM CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 8,
+   "ativo": true,
+   "hash": "hash8",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000008-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "FULANA DE TAL",
+     "polo": "A",
+     "comunicacao_id": 900008
+    },
+    {
+     "nome": "BANCO BRADESCO S.A.",
+     "polo": "P",
+     "comunicacao_id": 900008
+    }
+   ],
+   "destinatarioadvogados": []
+  },
+  {
+   "id": 900009,
+   "data_disponibilizacao": "2026-10-09",
+   "siglaTribunal": "TJBA",
+   "tipoComunicacao": "Intimação",
+   "nomeOrgao": "2º JUIZADO ESPECIAL CÍVEL DE DEFESA DO CONSUMIDOR - VITÓRIA DA CONQUISTA",
+   "texto": "Intimação da sentença: ... Pelo exposto, JULGO PROCEDENTE EM PARTE o pedido para declarar a inexistência do débito e determinar a exclusão do nome do autor dos cadastros de proteção ao crédito (SERASA), e JULGO IMPROCEDENTE o pedido contraposto. Condeno a ré a pagar indenização por danos morais no valor de R$ 4.500,00. Documento assinado eletronicamente por Rita de Cássia Oliveira, Juíza de Direito",
+   "numero_processo": "80000091020258050001",
+   "meio": "D",
+   "link": "https://pje.tjba.jus.br/pje/ConsultaPublica/DetalheProcessoConsultaPublica/documentoSemLoginHTML.seam?ca=9",
+   "tipoDocumento": "Intimação",
+   "nomeClasse": "PROCEDIMENTO DO JUIZADO ESPECIAL CÍVEL",
+   "codigoClasse": "7",
+   "numeroComunicacao": 9,
+   "ativo": true,
+   "hash": "hash9",
+   "datadisponibilizacao": "09/10/2026",
+   "meiocompleto": "Diário de Justiça Eletrônico Nacional",
+   "numeroprocessocommascara": "8000009-10.2025.8.05.0001",
+   "destinatarios": [
+    {
+     "nome": "JOSÉ DA SILVA",
+     "polo": "A",
+     "comunicacao_id": 900009
+    },
+    {
+     "nome": "CLARO S.A.",
+     "polo": "P",
+     "comunicacao_id": 900009
+    }
+   ],
+   "destinatarioadvogados": []
+  }
+ ]
+}

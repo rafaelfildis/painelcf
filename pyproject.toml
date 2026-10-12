@@ -1,0 +1,12 @@
+[project]
+name = "painelcf"
+version = "0.1.0"
+description = "Painel Calmon & Freitas Advogados — módulo de teses (jurimetria de sentenças do DJEN/TJBA)"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+painelcf-teses = "painelcf.teses.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["painelcf*"]
