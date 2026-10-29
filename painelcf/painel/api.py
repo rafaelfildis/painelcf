@@ -145,9 +145,10 @@ def saude(djen: Callable[[], ClienteDJEN] = _djen_padrao) -> dict:
     """Testa o acesso ao DJEN a partir deste servidor (o CNJ bloqueia IPs fora do Brasil)."""
     ontem = date.fromordinal(date.today().toordinal() - 1).isoformat()
     try:
-        _, total, _ = djen().consultar({"siglaTribunal": "TJBA", "dataDisponibilizacaoInicio": ontem,
-                                        "dataDisponibilizacaoFim": ontem}, max_paginas=1)
-        return {"djen": "ok", "teste": f"{total} comunicações do TJBA em {ontem}"}
+        itens, total, _ = djen().consultar({"siglaTribunal": "TJBA", "dataDisponibilizacaoInicio": ontem,
+                                            "dataDisponibilizacaoFim": ontem}, max_paginas=2)
+        return {"djen": "ok", "teste": f"{total} comunicações do TJBA em {ontem}",
+                "paginas_lidas": len(itens)}
     except AcessoBloqueado:
         return {"djen": "bloqueado", "teste": "O DJEN recusou este servidor (bloqueio a IPs fora do Brasil)."}
     except ErroDJEN as e:
