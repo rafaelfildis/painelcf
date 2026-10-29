@@ -1,8 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["gru1"],
+  "framework": null,
+  "buildCommand": null,
+  "regions": [
+    "gru1"
+  ],
   "outputDirectory": "public",
   "functions": {
-    "api/*.py": { "maxDuration": 300, "excludeFiles": "{tests/**,dados/**,relatorios/**,public/**}" }
+    "api/*.py": {
+      "maxDuration": 300,
+      "excludeFiles": "{tests/**,dados/**,relatorios/**,public/**}"
+    }
   }
 }
