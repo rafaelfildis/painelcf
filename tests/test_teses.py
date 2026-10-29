@@ -128,12 +128,35 @@ class TestResultado(unittest.TestCase):
             "HOMOLOGO o pedido de desistência e julgo extinto o feito, art. 485, VIII.": c.SEM_MERITO,
             "Ante o exposto, PRONUNCIO a prescrição e extingo o feito com resolução do mérito.": c.PRESCRICAO,
             "Trata-se de embargos de declaração. REJEITO-OS.": c.EMBARGOS,
+            ("PODER JUDICIÁRIO " * 40 + "Diante do exposto, CONHEÇO e REJEITO os embargos de declaração opostos."): c.EMBARGOS,
+            "Ante o exposto, conheço dos embargos de declaração e, no mérito, REJEITO-OS integralmente.": c.EMBARGOS,
+            "Ante o exposto, HOMOLOGO O RECONHECIMENTO DA PROCEDÊNCIA DO PEDIDO formulado pela autora.": c.PROCEDENTE,
+            "Ante o exposto, com fundamento no art. 290 do CPC, determino o CANCELAMENTO DA DISTRIBUIÇÃO.": c.SEM_MERITO,
+            ("Ante o exposto, ACOLHO A PREJUDICIAL DE MÉRITO suscitada pelas corrés e reconheço, quanto às parcelas "
+             "anteriores a 2020, a ocorrência da prescrição."): c.PRESCRICAO,
             "Cite-se.": c.INDEFINIDO,
         }
 
     def test_resultados(self):
         for texto, esperado in self.casos().items():
             self.assertEqual(c.resultado(texto)[0], esperado, texto)
+
+    def test_eventos_do_eproc(self):
+        base = ("Fica(m) a(s) Parte(s), por seu(s) Advogado(s), intimada(s) do evento processual ocorrido em "
+                "(15/10/2026 17:39:26): ")
+        casos = {
+            "Julgada procedente a ação": c.PROCEDENTE,
+            "Julgada procedente em parte a ação": c.PARCIAL,
+            "Julgada improcedente a ação": c.IMPROCEDENTE,
+            "Homologada a transação": c.ACORDO,
+            "Extinto o processo por desistência": c.SEM_MERITO,
+            "Extinto o processo por ausência do autor à audiência": c.SEM_MERITO,
+        }
+        for evento, esperado in casos.items():
+            self.assertEqual(c.resultado(base + evento)[0], esperado, evento)
+            self.assertTrue(c.e_sentenca("Intimação - Diário", base + evento), evento)
+        for outro in ("Transitado em julgado", "Ato ordinatório praticado Descrição: ficam intimadas as partes da sentença"):
+            self.assertFalse(c.e_sentenca("Intimação - Diário", base + outro), outro)
 
     def test_projeto_homologado_no_juizado(self):
         texto = ("Isto posto, JULGO PROCEDENTE o pedido. Submeto à homologação. "

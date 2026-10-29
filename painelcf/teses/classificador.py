@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from .config import Config
 from .texto import chave, limpar_html, sem_acentos, valor_monetario
 
-VERSAO = 1
+VERSAO = 2
 
 PROCEDENTE = "PROCEDENTE"
 PARCIAL = "PARCIALMENTE_PROCEDENTE"
@@ -110,9 +110,44 @@ _SEM_MERITO = re.compile(
     r"[^.]{0,160}?(SEM\s+(RESOLUCAO|JULGAMENTO|EXAME|APRECIACAO)\s+D[OE]\s+MERITO|ART\.?\s*485|DESISTENCIA)"
 )
 _PRESCRICAO = re.compile(
-    r"\b(PRONUNCIO|RECONHECO|DECLARO|ACOLHO)\b[^.]{0,60}?\b(PRESCRICAO|DECADENCIA)\b"
+    r"\b(PRONUNCIO|RECONHECO|DECLARO|ACOLHO)\b[^.]{0,160}?\b(PRESCRICAO|DECADENCIA|PRESCRITA|PRESCRITO)\b"
 )
 _EMBARGOS_INICIO = re.compile(r"EMBARGOS\s+DE\s+DECLARACAO|EMBARGOS\s+DECLARATORIOS")
+# Decisão de embargos de declaração no dispositivo: "CONHEÇO e REJEITO os embargos de declaração",
+# "conheço dos embargos de declaração e REJEITO-OS".
+_EMBARGOS_DECISAO = re.compile(
+    r"\b(ACOLHO|REJEITO|CONHECO|DOU\s+PROVIMENTO|NEGO\s+PROVIMENTO)\b[^.]{0,80}?\bEMBARGOS\s+"
+    r"(DE\s+DECLARACAO|DECLARATORIOS)|\bEMBARGOS\s+(DE\s+DECLARACAO|DECLARATORIOS)\b[^.]{0,80}?"
+    r"\b(ACOLHO-OS|REJEITO-OS|ACOLHO|REJEITO)\b"
+)
+# "HOMOLOGO O RECONHECIMENTO DA PROCEDÊNCIA DO PEDIDO" (art. 487, III, "a", do CPC).
+_RECONHECIMENTO = re.compile(r"\bHOMOLOG\w*\b[^.]{0,40}?RECONHECIMENTO\s+DA\s+PROCEDENCIA")
+# Cancelamento da distribuição por falta de custas (art. 290 do CPC).
+_CANCELAMENTO = re.compile(r"CANCELAMENTO\s+DA\s+DISTRIBUICAO")
+
+# No eproc (Juizados do TJBA), o DJEN publica só o aviso do andamento, sem o teor da sentença:
+# "Fica(m) a(s) Parte(s) ... intimada(s) do evento processual ocorrido em (15/10/2026 17:39:26):
+#  Julgada improcedente a ação".
+_EVENTO_EPROC = re.compile(r"EVENTO\s+PROCESSUAL\s+OCORRIDO\s+EM\s+\([^)]*\)\s*:\s*")
+_EVENTOS_SENTENCA = [
+    (re.compile(r"JULGAD[AO]S?\s+PROCEDENTES?\s+EM\s+PARTE"), "PARCIALMENTE_PROCEDENTE"),
+    (re.compile(r"JULGAD[AO]S?\s+IMPROCEDENTE"), "IMPROCEDENTE"),
+    (re.compile(r"JULGAD[AO]S?\s+PROCEDENTE"), "PROCEDENTE"),
+    (re.compile(r"HOMOLOGAD[AO]S?\s+(A\s+TRANSACAO|O\s+ACORDO)"), "ACORDO_HOMOLOGADO"),
+    (re.compile(r"EXTINTO\s+O\s+PROCESSO\s+POR\s+(PRESCRICAO|DECADENCIA)"), "PRESCRICAO_DECADENCIA"),
+    (re.compile(r"EXTINTO\s+O\s+PROCESSO"), "EXTINTO_SEM_MERITO"),
+]
+
+
+def evento_eproc(u: str) -> tuple[str, int] | None:
+    """Resultado de um aviso de andamento do eproc, se for de sentença: (resultado, posição)."""
+    m = _EVENTO_EPROC.search(u)
+    if not m:
+        return None
+    for padrao, res in _EVENTOS_SENTENCA:
+        if padrao.match(u, m.end()):
+            return res, m.end()
+    return None
 
 
 @dataclass
@@ -152,6 +187,8 @@ def _consolidar(achados: list[_Achado]) -> str:
 def resultado(texto: str) -> tuple[str, int | None]:
     """Retorna (resultado, posição do dispositivo no texto normalizado)."""
     u = chave(texto)
+    if evento := evento_eproc(u):
+        return evento
     if _EMBARGOS_INICIO.search(u[:400]):
         return EMBARGOS, None
 
@@ -167,12 +204,18 @@ def resultado(texto: str) -> tuple[str, int | None]:
         perto = [a for a in achados if a.inicio - achados[0].inicio <= 800]
         return _consolidar(perto), perto[0].inicio
 
+    if m := _RECONHECIMENTO.search(u):
+        return PROCEDENTE, m.start()
     if m := _PRESCRICAO.search(u):
         return PRESCRICAO, m.start()
     if m := _ACORDO.search(u):
         return ACORDO, m.start()
     if m := _SEM_MERITO.search(u):
         return SEM_MERITO, m.start()
+    if m := _CANCELAMENTO.search(u):
+        return SEM_MERITO, m.start()
+    if _EMBARGOS_DECISAO.search(u):
+        return EMBARGOS, None
     return INDEFINIDO, None
 
 
@@ -180,6 +223,8 @@ def e_sentenca(tipo_documento: str | None, texto: str) -> bool:
     tipo = chave(tipo_documento)
     if "SENTENCA" in tipo:
         return True
+    if _EVENTO_EPROC.search(chave(texto)):
+        return evento_eproc(chave(texto)) is not None
     if any(t in tipo for t in ("DESPACHO", "DECISAO", "ACORDAO", "ATO ORDINATORIO", "EDITAL", "CERTIDAO")):
         return False
     # Intimações genéricas cujo teor traz a própria sentença.
