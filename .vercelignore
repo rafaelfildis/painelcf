@@ -3,3 +3,4 @@ relatorios/
 tests/
 *.db
 __pycache__/
+pyproject.toml
