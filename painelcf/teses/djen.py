@@ -33,12 +33,12 @@ class AcessoBloqueado(ErroDJEN):
 Buscador = Callable[[str], bytes]
 
 
-def _http_get(url: str, tentativas: int = 6) -> bytes:
+def _http_get(url: str, tentativas: int = 6, timeout: int = 90) -> bytes:
     espera = 5.0
     for tentativa in range(1, tentativas + 1):
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=90) as resp:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return resp.read()
         except urllib.error.HTTPError as e:
             if e.code == 403:
@@ -108,6 +108,27 @@ class ClienteDJEN:
             log.warning("%s %s: API informou %d comunicações, mas só %d foram entregues pela paginação",
                         self.tribunal, dia, total, recebidos)
         self.ultimo_total = total or 0
+
+    # ---------------------------------------------------------------- consulta livre
+
+    def consultar(self, filtros: dict, max_paginas: int = 20) -> tuple[list[dict], int, bool]:
+        """Consulta com filtros da API (numeroOab, nomeParte, datas...).
+
+        Retorna (itens, total informado pela API, truncado por max_paginas)."""
+        itens: list[dict] = []
+        total = None
+        for pagina in range(1, max_paginas + 1):
+            params = {**{k: v for k, v in filtros.items() if v}, "pagina": pagina,
+                      "itensPorPagina": self.itens_por_pagina}
+            dados = self._json(f"{BASE}/comunicacao?{urllib.parse.urlencode(params)}")
+            lote = dados.get("items") or []
+            if total is None:
+                total = int(dados.get("count") or 0)
+            itens += lote
+            if not lote or len(itens) >= total:
+                return itens, total, False
+            time.sleep(self.pausa)
+        return itens, total or len(itens), len(itens) < (total or 0)
 
     # ---------------------------------------------------------------- caderno do dia
 

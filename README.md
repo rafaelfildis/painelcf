@@ -1,5 +1,28 @@
 # painelcf — Painel Calmon & Freitas Advogados
 
+## Painel de publicações (DJEN + DataJud)
+
+Consulta as publicações do **DJEN** com estes filtros: nome da parte, nome do advogado, OAB, UF da OAB, mês e ano.
+A opção "Últimos 3 anos" busca o histórico. Cada processo encontrado é completado com o **DataJud**: classe,
+assuntos, resultado da sentença (andamentos 219/220/221 da TPU), trânsito em julgado e último andamento.
+
+O painel mostra:
+
+- indicadores e publicações por mês;
+- resultado das sentenças;
+- tipo de ato, tribunais e varas;
+- partes mais frequentes por polo, advogados e assuntos;
+- tabela com o inteiro teor e a certidão de publicação;
+- exportação em CSV.
+
+- **Vercel:** `vercel.json` fixa as funções em São Paulo (`gru1`), porque o DJEN bloqueia IPs fora do Brasil. As
+  funções ficam em `api/` e a interface em `public/`. Para exigir senha, defina a variável de ambiente
+  `PAINEL_TOKEN` no projeto.
+- **Computador do escritório:** rode `python -m painelcf.painel`, que abre `http://127.0.0.1:8000`.
+
+Rotas: `/api/publicacoes`, `/api/processos?numeros=...` e `/api/saude`. A rota de saúde testa o acesso ao DJEN.
+
+
 ## Módulo de teses (DJEN / TJBA)
 
 Consulta diariamente o **Diário de Justiça Eletrônico Nacional (DJEN)** do CNJ e analisa as sentenças do TJBA

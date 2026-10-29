@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Painel DJEN · DataJud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Literata:opsz,wght@7..72,500;7..72,600&display=swap">
+<link rel="stylesheet" href="/painel.css">
+</head>
+<body>
+<header class="topo">
+  <div class="marca">
+    <span class="sigla" aria-hidden="true">C&amp;F</span>
+    <div>
+      <h1>Painel de publicações</h1>
+      <p>Calmon &amp; Freitas Advogados · DJEN e DataJud (CNJ)</p>
+    </div>
+  </div>
+  <span id="status-djen" class="pill neutro" title="Acesso deste servidor ao DJEN">Verificando DJEN…</span>
+</header>
+
+<main>
+  <form id="filtros" class="filtros" autocomplete="off">
+    <label class="campo largo"><span>Nome da parte</span>
+      <input id="f-parte" name="parte" placeholder="Ex.: BANCO BRADESCO"></label>
+    <label class="campo largo"><span>Nome do advogado</span>
+      <input id="f-advogado" name="advogado" placeholder="Ex.: JONATHAN CORREA MILANEZ"></label>
+    <label class="campo"><span>OAB</span>
+      <input id="f-oab" name="oab" inputmode="numeric" placeholder="74896"></label>
+    <label class="campo curto"><span>UF OAB</span>
+      <select id="f-uf" name="uf"><option value="">—</option></select></label>
+    <label class="campo"><span>Mês</span>
+      <select id="f-mes" name="mes"><option value="">Ano inteiro</option></select></label>
+    <label class="campo"><span>Ano</span>
+      <select id="f-ano" name="ano"></select></label>
+    <details class="mais">
+      <summary>Mais filtros</summary>
+      <div class="mais-campos">
+        <label class="campo"><span>Tribunal</span>
+          <input id="f-tribunal" name="tribunal" placeholder="TJBA"></label>
+        <label class="campo largo"><span>Número do processo</span>
+          <input id="f-processo" name="processo" placeholder="0000000-00.0000.0.00.0000"></label>
+        <label class="campo"><span>Limite</span>
+          <select id="f-limite" name="limite">
+            <option value="20">2.000 publicações</option>
+            <option value="50">5.000 publicações</option>
+          </select></label>
+      </div>
+    </details>
+    <div class="acoes">
+      <button type="submit" id="consultar" class="primario">Consultar</button>
+      <button type="button" id="limpar" class="secundario">Limpar</button>
+    </div>
+  </form>
+
+  <div id="senha-box" class="aviso" hidden>
+    <label for="senha">Senha de acesso ao painel</label>
+    <div class="linha"><input id="senha" type="password" autocomplete="current-password">
+      <button type="button" id="senha-ok" class="primario">Entrar</button></div>
+  </div>
+
+  <p id="mensagem" class="mensagem" role="status" aria-live="polite"></p>
+
+  <section id="vazio" class="vazio">
+    <h2>Consulte publicações do Diário de Justiça Eletrônico Nacional</h2>
+    <p>Preencha ao menos um filtro: nome da parte, nome do advogado ou OAB. O período padrão é o ano atual; escolha
+      <b>Últimos 3 anos</b> no campo Ano para o histórico. Cada processo encontrado é completado com dados do DataJud:
+      classe, assunto, resultado da sentença e último andamento.</p>
+  </section>
+
+  <section id="resultado" hidden>
+    <div class="cabecalho-resultado">
+      <div>
+        <h2 id="titulo-resultado"></h2>
+        <p id="sub-resultado" class="sub"></p>
+      </div>
+      <button type="button" id="csv" class="secundario">Exportar CSV</button>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grade">
+      <article class="painel largo"><h3>Publicações por mês</h3><div id="g-mes" class="grafico"></div></article>
+      <article class="painel"><h3>Resultado das sentenças <small>DataJud</small></h3><div id="g-sentenca"></div></article>
+      <article class="painel"><h3>Tipo de ato</h3><div id="g-tipo"></div></article>
+      <article class="painel"><h3>Tribunais e varas</h3><div id="g-orgao"></div></article>
+      <article class="painel"><h3>Polo passivo mais frequente</h3><div id="g-passivo"></div></article>
+      <article class="painel"><h3>Polo ativo mais frequente</h3><div id="g-ativo"></div></article>
+      <article class="painel"><h3>Advogados</h3><div id="g-adv"></div></article>
+      <article class="painel"><h3>Assuntos <small>DataJud</small></h3><div id="g-assunto"></div></article>
+    </div>
+
+    <article class="painel tabela-box">
+      <div class="tabela-topo">
+        <h3>Publicações</h3>
+        <input id="busca" type="search" placeholder="Filtrar nesta lista…" aria-label="Filtrar publicações">
+      </div>
+      <div class="rolagem">
+        <table>
+          <thead><tr>
+            <th>Data</th><th>Processo</th><th>Órgão</th><th>Ato</th><th>Partes</th><th>DataJud</th>
+          </tr></thead>
+          <tbody id="linhas"></tbody>
+        </table>
+      </div>
+      <div class="paginacao">
+        <button type="button" id="anterior" class="secundario">Anterior</button>
+        <span id="pagina-info"></span>
+        <button type="button" id="proxima" class="secundario">Próxima</button>
+      </div>
+    </article>
+  </section>
+
+  <p class="rodape">Fontes: DJEN — Comunica PJe (CNJ) e DataJud — Base Nacional de Dados do Poder Judiciário (CNJ),
+    APIs públicas. O DJEN mostra os atos publicados; processos sem publicação no período não aparecem.</p>
+</main>
+<script src="/painel.js"></script>
+</body>
+</html>

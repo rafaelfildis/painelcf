@@ -1,0 +1,5 @@
+dados/
+relatorios/
+tests/
+*.db
+__pycache__/
