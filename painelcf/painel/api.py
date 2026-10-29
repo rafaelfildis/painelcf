@@ -11,6 +11,7 @@ import time
 from collections.abc import Callable
 from datetime import date
 
+from ..teses.djen import BASE as DJEN_BASE
 from ..teses.djen import AcessoBloqueado, ClienteDJEN, ErroDJEN, _http_get
 from ..teses.texto import limpar_html
 from .datajud import ClienteDataJud, ErroDataJud
@@ -141,9 +142,20 @@ def processos(params: dict, datajud: Callable[[], ClienteDataJud] = ClienteDataJ
     return {"processos": datajud().processos(numeros)}
 
 
-def saude(djen: Callable[[], ClienteDJEN] = _djen_padrao) -> dict:
-    """Testa o acesso ao DJEN a partir deste servidor (o CNJ bloqueia IPs fora do Brasil)."""
+def saude(djen: Callable[[], ClienteDJEN] = _djen_padrao, params: dict | None = None) -> dict:
+    """Testa o acesso ao DJEN a partir deste servidor (o CNJ bloqueia IPs fora do Brasil).
+
+    Com ?caderno=AAAA-MM-DD, testa também o download do caderno do TJBA daquele dia."""
     ontem = date.fromordinal(date.today().toordinal() - 1).isoformat()
+    if params and params.get("caderno"):
+        dia = params["caderno"]
+        try:
+            bruto = _http_get(f"{DJEN_BASE}/caderno/TJBA/{dia}/D", tentativas=1, timeout=40)
+            return {"caderno": "ok", "resposta": bruto[:1500].decode("utf-8", "replace")}
+        except AcessoBloqueado:
+            return {"caderno": "bloqueado"}
+        except ErroDJEN as e:
+            return {"caderno": "erro", "detalhe": str(e)}
     try:
         itens, total, _ = djen().consultar({"siglaTribunal": "TJBA", "dataDisponibilizacaoInicio": ontem,
                                             "dataDisponibilizacaoFim": ontem}, max_paginas=2)
@@ -164,7 +176,7 @@ def responder(caminho: str, params: dict) -> tuple[int, dict]:
         if rota == "processos":
             return 200, processos(params)
         if rota == "saude":
-            return 200, saude()
+            return 200, saude(params=params)
         return 404, {"erro": "Rota não encontrada."}
     except ErroPedido as e:
         return 400, {"erro": str(e)}
