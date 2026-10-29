@@ -204,6 +204,42 @@ class TestExtracoes(unittest.TestCase):
         self.assertEqual(c.dano_moral(c.chave("restituir R$ 300,00 em dobro, e R$ 4.000,00 por dano moral")), 4000.0)
         self.assertIsNone(c.dano_moral(c.chave("improcedente o pedido de danos morais")))
 
+    def test_condenacao_dano_moral(self):
+        sim = [
+            "condenar o réu ao pagamento de R$ 5.000,00 a título de danos morais",
+            "condeno a ré a indenizar o autor pelos danos morais sofridos, no valor de R$ 3.000,00",
+            "CONDENAR a acionada a pagar compensação por dano moral, que fixo em R$ 2.000,00",
+            "condenar a acionada em R$ 3.000,00 a título de danos morais, rejeitando o pedido de danos materiais",
+            "rejeitando o pedido de lucros cessantes, e condenar a ré ao pagamento de R$ 5.000,00 por danos morais",
+        ]
+        nao = [
+            "declarar a inexistência do débito, rejeitando o pedido de danos morais",
+            "julgo improcedente o pedido de indenização por danos morais",
+            "não há dano moral indenizável, tratando-se de mero aborrecimento",
+            "determinar a restituição simples dos valores",
+            ("E) JULGAR IMPROCEDENTES OS PEDIDOS DE REEMBOLSO DOS HONORÁRIOS, DAS DESPESAS COM NOTIFICAÇÕES "
+             "E DE INDENIZAÇÃO POR DANOS MORAIS."),
+            "E) NEGAR O RESTANTE DA REPETIÇÃO, A NULIDADE DA RENEGOCIAÇÃO E A INDENIZAÇÃO POR DANOS MORAIS.",
+            "C) REJEITAR O PEDIDO DE CONDENAÇÃO DO RÉU AO PAGAMENTO DE INDENIZAÇÃO POR DANOS MORAIS; D) OFICIAR",
+        ]
+        for t in sim:
+            self.assertTrue(c.condenacao_dano_moral(c.chave(t)), t)
+        for t in nao:
+            self.assertFalse(c.condenacao_dano_moral(c.chave(t)), t)
+        self.assertIsNone(c.dano_moral(c.chave("rejeitando o pedido de danos morais de R$ 20.000,00")))
+
+    def test_analisar_sentenca(self):
+        a = c.analisar_sentenca("Sentença", "Ante o exposto, JULGO PARCIALMENTE PROCEDENTE para condenar a ré "
+                                            "ao pagamento de R$ 4.000,00 por danos morais.")
+        self.assertEqual((a["resultado"], a["dano_moral"], a["valor_dano_moral"]), (c.PARCIAL, True, 4000.0))
+        b = c.analisar_sentenca("Sentença", "Ante o exposto, JULGO PARCIALMENTE PROCEDENTE para declarar a "
+                                            "inexistência do débito, rejeitando o pedido de danos morais.")
+        self.assertEqual((b["resultado"], b["dano_moral"]), (c.PARCIAL, False))
+        e = c.analisar_sentenca("Intimação - Diário", "intimada(s) do evento processual ocorrido em (15/10/2026 "
+                                                      "17:39:26): Julgada procedente a ação")
+        self.assertEqual((e["resultado"], e["sem_teor"], e["dano_moral"]), (c.PROCEDENTE, True, False))
+        self.assertIsNone(c.analisar_sentenca("Despacho", "Cite-se."))
+
     def test_dobro(self):
         self.assertTrue(c.repeticao_dobro(c.chave("condenar o réu a restituir, em dobro, os valores descontados")))
         self.assertFalse(c.repeticao_dobro(c.chave("restituição simples dos valores")))

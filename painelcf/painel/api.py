@@ -13,6 +13,7 @@ from datetime import date
 
 from ..teses.djen import BASE as DJEN_BASE
 from ..teses.djen import AcessoBloqueado, ClienteDJEN, ErroDJEN, _http_get
+from ..teses.classificador import analisar_sentenca
 from ..teses.texto import limpar_html
 from .datajud import ClienteDataJud, ErroDataJud
 
@@ -67,6 +68,7 @@ def normalizar(item: dict) -> dict:
             advogados.append({"nome": adv["nome"], "oab": str(adv.get("numero_oab") or ""),
                               "uf": adv.get("uf_oab") or ""})
     texto = limpar_html(item.get("texto"))
+    sentenca = analisar_sentenca(item.get("tipoDocumento"), texto)  # antes de encurtar: o dispositivo fica no fim
     return {
         "id": item.get("id"),
         "data": _data_iso(item),
@@ -83,6 +85,7 @@ def normalizar(item: dict) -> dict:
         "partes": [{"nome": d.get("nome"), "polo": (d.get("polo") or "").upper()[:1]}
                    for d in item.get("destinatarios") or [] if d.get("nome")],
         "advogados": advogados,
+        "sentenca": sentenca,
         "texto": texto[:TEXTO_MAX],
         "texto_cortado": len(texto) > TEXTO_MAX,
     }

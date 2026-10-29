@@ -3,6 +3,13 @@
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SE","SP","TO"];
 const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 const POR_PAGINA = 50;
+const CAMPOS = ["parte", "advogado", "oab", "uf", "mes", "ano", "tribunal", "processo", "limite", "sentenca"];
+const RESULTADO = {
+  PROCEDENTE: "Procedente", PARCIALMENTE_PROCEDENTE: "Procedente em parte", IMPROCEDENTE: "Improcedente",
+  PRESCRICAO_DECADENCIA: "Prescrição/decadência", EXTINTO_SEM_MERITO: "Extinto sem mérito",
+  ACORDO_HOMOLOGADO: "Acordo homologado", EMBARGOS_DECLARACAO: "Embargos de declaração", INDEFINIDO: "Sentença",
+};
+const FAVORAVEIS_DJ = ["Procedente", "Procedente em parte"];
 const LOTE_DATAJUD = 40;
 
 const $ = (id) => document.getElementById(id);
@@ -14,6 +21,7 @@ const num = (n) => Number(n || 0).toLocaleString("pt-BR");
 const dataBR = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "—");
 const mascara = (n) => (n && n.length === 20 ? `${n.slice(0,7)}-${n.slice(7,9)}.${n.slice(9,13)}.${n.slice(13,14)}.${n.slice(14,16)}.${n.slice(16)}` : n || "");
 const pct = (a, b) => (b ? `${Math.round((a / b) * 100)}%` : "—");
+const moeda = (v) => (v == null ? "" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }));
 
 function guardar(chave, valor) { try { valor == null ? localStorage.removeItem(chave) : localStorage.setItem(chave, valor); } catch (_) {} }
 function ler(chave) { try { return localStorage.getItem(chave); } catch (_) { return null; } }
@@ -47,7 +55,7 @@ function montarFiltros() {
   $("f-ano").innerHTML = anos.join("");
   // Filtros vindos do endereço (?oab=...&uf=...) permitem compartilhar uma consulta.
   const q = new URLSearchParams(location.search);
-  for (const campo of ["parte", "advogado", "oab", "uf", "mes", "ano", "tribunal", "processo", "limite"]) {
+  for (const campo of CAMPOS) {
     if (q.has(campo)) $(`f-${campo}`).value = q.get(campo);
   }
   $("f-mes").disabled = $("f-ano").value === "3anos";
@@ -56,7 +64,7 @@ function montarFiltros() {
 
 function lerFiltros() {
   const f = {};
-  for (const campo of ["parte", "advogado", "oab", "uf", "mes", "ano", "tribunal", "processo", "limite"]) {
+  for (const campo of CAMPOS) {
     const v = $(`f-${campo}`).value.trim();
     if (v) f[campo] = v;
   }
@@ -84,7 +92,8 @@ async function consultar(ev) {
   try {
     for (const ano of anos) {
       mensagem(`Consultando o DJEN${anos.length > 1 ? ` (${ano})` : ""}…`);
-      const r = await api("publicacoes", { ...f, ano });
+      const { sentenca, ...paraApi } = f;
+      const r = await api("publicacoes", { ...paraApi, ano });
       if (id !== estado.consulta) return;
       estado.itens.push(...r.itens);
       total += r.total;
@@ -119,7 +128,7 @@ async function enriquecer(id) {
       for (const n of lote) estado.datajud[n] ??= { erro: true };
     }
     if (id !== estado.consulta) return;
-    renderTudo();
+    aplicarBusca(false);
   }
   $("sub-resultado").dataset.dj = numeros.length ? "DataJud: concluído." : "";
   renderCabecalho();
@@ -203,17 +212,24 @@ function renderCabecalho() {
   const per = estado.anos?.length > 1 ? `${estado.anos[0]} a ${estado.anos.at(-1)}`
     : f.mes ? `${MESES[f.mes - 1]} de ${estado.anos?.[0]}` : `ano de ${estado.anos?.[0]}`;
   $("titulo-resultado").textContent = quem || "Resultado";
-  $("sub-resultado").textContent = `Publicações no DJEN, ${per}. ${$("sub-resultado").dataset.dj || ""}`;
+  const filtroS = $("f-sentenca").selectedIndex > 0 ? ` Filtro: ${$("f-sentenca").selectedOptions[0].text.toLowerCase()}.` : "";
+  $("sub-resultado").textContent = `Publicações no DJEN, ${per}.${filtroS} ${$("sub-resultado").dataset.dj || ""}`;
 }
 
 function renderTudo() {
   const itens = estado.filtrados;
   const procs = processosUnicos(itens);
-  const sentencas = itens.filter((p) => /senten/i.test(p.tipo_documento || "")).length;
+  const sentencas = itens.filter((p) => p.sentenca).length;
+  const procedentes = itens.filter((p) => sentencaDe(p)?.favoravel);
+  const comDano = procedentes.filter((p) => p.sentenca.dano_moral);
+  const valores = comDano.map((p) => p.sentenca.valor_dano_moral).filter(Boolean).sort((a, b) => a - b);
+  const mediana = valores.length ? valores[Math.floor((valores.length - 1) / 2)] : null;
   $("kpis").innerHTML = [
     [num(itens.length), estado.total > estado.itens.length ? `publicações (de ${num(estado.total)} no DJEN)` : "publicações"],
     [num(procs.length), "processos distintos"],
     [num(sentencas), "sentenças publicadas"],
+    [num(procedentes.length), "sentenças procedentes"],
+    [num(comDano.length), mediana ? `com dano moral · mediana ${moeda(mediana)}` : "com dano moral"],
     [num(new Set(itens.map((p) => p.tribunal)).size), new Set(itens.map((p) => p.tribunal)).size === 1 ? "tribunal" : "tribunais"],
     [num(new Set(itens.map((p) => p.orgao)).size), new Set(itens.map((p) => p.orgao)).size === 1 ? "vara ou órgão" : "varas e órgãos"],
   ].map(([v, t]) => `<div class="kpi"><b>${v}</b><span>${t}</span></div>`).join("");
@@ -241,6 +257,17 @@ function celulaDataJud(n) {
     (d.ultimo_andamento ? `<div class="s">Último: ${esc(d.ultimo_andamento.nome)} (${dataBR(d.ultimo_andamento.data)})${d.transitado ? " · transitado" : ""}</div>` : "");
 }
 
+function seloSentenca(p) {
+  const s = sentencaDe(p);
+  if (!s) return "";
+  const cls = s.favoravel ? (s.resultado === "PARCIALMENTE_PROCEDENTE" ? "parc" : "proc")
+    : ["IMPROCEDENTE", "PRESCRICAO_DECADENCIA"].includes(s.resultado) ? "improc" : "outro";
+  const rot = s.resultado === "INDEFINIDO" && s.favoravel ? "Procedente (DataJud)" : RESULTADO[s.resultado] || s.resultado;
+  const dano = s.dano_moral ? `<div class="dano">Dano moral${s.valor_dano_moral ? ": " + moeda(s.valor_dano_moral) : ""}</div>`
+    : s.sem_teor && s.favoravel && s.pedidoDano ? `<div class="s">Pedido de dano moral (assunto)</div>` : "";
+  return `<div><span class="selo ${cls}">${esc(rot)}</span></div>${dano}`;
+}
+
 function renderTabela() {
   const itens = estado.filtrados;
   const paginas = Math.max(1, Math.ceil(itens.length / POR_PAGINA));
@@ -253,7 +280,7 @@ function renderTabela() {
       <td class="data">${dataBR(p.data)}</td>
       <td>${p.link ? `<a href="${esc(p.link)}" target="_blank" rel="noopener">${proc}</a>` : proc}<div class="s">${esc(p.classe || "")}</div></td>
       <td>${esc(p.orgao || "")}<div class="s">${esc(p.tribunal || "")}</div></td>
-      <td>${esc(p.tipo_documento || "")}<div class="s">${esc(p.tipo_comunicacao || "")}</div></td>
+      <td>${esc(p.tipo_documento || "")}<div class="s">${esc(p.tipo_comunicacao || "")}</div>${seloSentenca(p)}</td>
       <td>${partes}</td>
       <td>${celulaDataJud(p.processo)}</td></tr>`;
     const teor = estado.aberto === p.id ? `<tr class="teor"><td colspan="6"><div class="teor-texto">${esc(p.texto)}${p.texto_cortado ? "\n\n[texto encurtado — abra o link do processo para o inteiro teor]" : ""}</div>
@@ -266,12 +293,37 @@ function renderTabela() {
   $("proxima").disabled = estado.pagina >= paginas - 1;
 }
 
-function aplicarBusca() {
+// Sentença de uma publicação: classificação do teor (DJEN) completada pelo DataJud quando o teor não basta.
+function sentencaDe(p) {
+  const s = p.sentenca;
+  if (!s) return null;
+  const dj = estado.datajud[p.processo] || {};
+  let favoravel = ["PROCEDENTE", "PARCIALMENTE_PROCEDENTE"].includes(s.resultado);
+  if (s.resultado === "INDEFINIDO" && FAVORAVEIS_DJ.includes(dj.sentenca?.resultado)) favoravel = true;
+  return {
+    ...s, favoravel,
+    pedidoDano: (dj.assuntos || []).some((a) => /dano moral/i.test(a)),
+  };
+}
+
+function passaFiltroSentenca(p) {
+  const modo = $("f-sentenca").value;
+  if (!modo) return true;
+  const s = sentencaDe(p);
+  if (!s) return false;
+  if (modo === "sentencas") return true;
+  if (modo === "procedentes") return s.favoravel;
+  if (modo === "dano") return s.favoravel && s.dano_moral;
+  if (modo === "pedido_dano") return s.favoravel && (s.dano_moral || s.pedidoDano);
+  return true;
+}
+
+function aplicarBusca(reiniciar = true) {
   const q = $("busca").value.trim().toLowerCase();
-  estado.filtrados = !q ? estado.itens : estado.itens.filter((p) =>
+  estado.filtrados = estado.itens.filter((p) => passaFiltroSentenca(p) && (!q ||
     [p.processo, p.processo_mascara, p.orgao, p.tribunal, p.tipo_documento, p.classe, p.texto,
-      ...p.partes.map((x) => x.nome), ...p.advogados.map((a) => a.nome)].join(" ").toLowerCase().includes(q));
-  estado.pagina = 0;
+      ...p.partes.map((x) => x.nome), ...p.advogados.map((a) => a.nome)].join(" ").toLowerCase().includes(q)));
+  if (reiniciar) estado.pagina = 0;
   $("vazio").hidden = true;
   $("resultado").hidden = false;
   renderTudo();
@@ -279,12 +331,16 @@ function aplicarBusca() {
 
 // ------------------------------------------------------------------ CSV
 function exportarCSV() {
-  const col = ["data", "processo", "tribunal", "orgao", "classe", "tipo_documento", "tipo_comunicacao", "polo_ativo",
+  const col = ["data", "processo", "tribunal", "orgao", "classe", "tipo_documento", "resultado_sentenca", "dano_moral",
+    "valor_dano_moral", "tipo_comunicacao", "polo_ativo",
     "polo_passivo", "advogados", "dj_classe", "dj_assuntos", "dj_sentenca", "dj_data_sentenca", "dj_ultimo_andamento", "link"];
   const cel = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const linhas = estado.filtrados.map((p) => {
     const d = estado.datajud[p.processo] || {};
-    return [dataBR(p.data), p.processo_mascara || mascara(p.processo), p.tribunal, p.orgao, p.classe, p.tipo_documento, p.tipo_comunicacao,
+    const s = sentencaDe(p);
+    return [dataBR(p.data), p.processo_mascara || mascara(p.processo), p.tribunal, p.orgao, p.classe, p.tipo_documento,
+      s ? RESULTADO[s.resultado] : "", s?.dano_moral ? "sim" : "", s?.valor_dano_moral ? String(s.valor_dano_moral).replace(".", ",") : "",
+      p.tipo_comunicacao,
       p.partes.filter((x) => x.polo === "A").map((x) => x.nome).join("; "), p.partes.filter((x) => x.polo === "P").map((x) => x.nome).join("; "),
       p.advogados.map((a) => `${a.nome} (OAB ${a.oab}/${a.uf})`).join("; "), d.classe, (d.assuntos || []).join("; "),
       d.sentenca?.resultado, dataBR(d.sentenca?.data), d.ultimo_andamento ? `${d.ultimo_andamento.nome} (${dataBR(d.ultimo_andamento.data)})` : "", p.link].map(cel).join(";");
@@ -317,7 +373,12 @@ $("limpar").addEventListener("click", () => {
   $("filtros").reset(); montarAnoPadrao(); history.replaceState(null, "", location.pathname);
   $("resultado").hidden = true; $("vazio").hidden = false; mensagem("");
 });
-$("busca").addEventListener("input", aplicarBusca);
+$("busca").addEventListener("input", () => aplicarBusca());
+$("f-sentenca").addEventListener("change", () => {
+  if (!estado.itens.length) return;
+  history.replaceState(null, "", `?${new URLSearchParams(lerFiltros())}`);
+  aplicarBusca();
+});
 $("anterior").addEventListener("click", () => { estado.pagina--; renderTabela(); });
 $("proxima").addEventListener("click", () => { estado.pagina++; renderTabela(); });
 $("csv").addEventListener("click", exportarCSV);

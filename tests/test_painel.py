@@ -58,6 +58,8 @@ class TestPublicacoes(unittest.TestCase):
         self.assertEqual(p["texto"], "SENTENÇA\nJULGO PROCEDENTE.")
         self.assertEqual(p["partes"], [{"nome": "FULANA", "polo": "A"}, {"nome": "BANCO X S.A.", "polo": "P"}])
         self.assertEqual(p["advogados"], [{"nome": "JONATHAN CORREA MILANEZ", "oab": "74896", "uf": "BA"}])
+        self.assertEqual(p["sentenca"]["resultado"], "PROCEDENTE")
+        self.assertFalse(p["sentenca"]["dano_moral"])
 
     def test_paginacao_limite_e_duplicados(self):
         paginas = [[dict(ITEM, id=i) for i in range(p * 100, p * 100 + 100)] for p in range(3)]

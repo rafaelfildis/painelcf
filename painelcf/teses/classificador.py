@@ -365,9 +365,37 @@ _INEXISTENCIA = re.compile(
 )
 
 
+# Contexto que nega o dano moral: "rejeitando o pedido de danos morais", "julgar improcedentes os pedidos de
+# reembolso, das despesas e de indenização por danos morais", "negar ... a indenização por danos morais".
+_NEGA_DANO = re.compile(
+    r"REJEIT|IMPROCED|INDEFIR|AFAST|\bNEG(AR|O|ANDO)\b|NAO\s+(HA|HOUVE|CONFIGUR|RESTOU|SE\s+VERIFICA)|"
+    r"INEXISTENCIA\s+DE\s+DANO|MERO\s+ABORRECIMENTO|EXCLU"
+)
+# Só verbos: "pedido de condenação ao pagamento de danos morais" não é condenação.
+_CONDENA = re.compile(r"\b(CONDEN(AR|O|ANDO)|PAGAR|FIX(O|AR|ANDO)|ARBITR(O|AR|ANDO)|INDENIZAR|COMPENSAR)\b")
+_FIM_CLAUSULA = re.compile(r"[.;]|\s[A-Z]{1,2}\)\s")
+
+
+def _dano_negado(u: str, m: re.Match) -> bool:
+    """Negação na mesma cláusula, antes da expressão (sem condenação entre as duas), ou logo depois dela."""
+    antes = _FIM_CLAUSULA.split(u[max(0, m.start() - 220): m.start()])[-1]
+    negacoes = list(_NEGA_DANO.finditer(antes))
+    if negacoes and not _CONDENA.search(antes, negacoes[-1].end()):
+        return True
+    depois = re.split(r"[.;,]", u[m.end(): m.end() + 60], maxsplit=1)[0]
+    return bool(_NEGA_DANO.search(depois))
+
+
+def condenacao_dano_moral(u_dispositivo: str) -> bool:
+    """O dispositivo condena em dano moral (há menção não negada à expressão)."""
+    return any(not _dano_negado(u_dispositivo, m) for m in _DANO_MORAL.finditer(u_dispositivo))
+
+
 def dano_moral(u_dispositivo: str) -> float | None:
     """Valor fixado a título de dano moral, buscando o R$ mais próximo da expressão."""
     for m in _DANO_MORAL.finditer(u_dispositivo):
+        if _dano_negado(u_dispositivo, m):
+            continue
         candidatos = []
         ini = max(0, m.start() - 220)
         janela = u_dispositivo[ini: m.end() + 260]
@@ -407,6 +435,24 @@ class Analise:
     repeticao_dobro: bool
     inexistencia_debito: bool
     temas: list[str] = field(default_factory=list)
+
+
+def analisar_sentenca(tipo_documento: str | None, texto: str) -> dict | None:
+    """Resultado e dano moral de uma publicação, sem filtro de vara (usado pelo painel)."""
+    if not e_sentenca(tipo_documento, texto):
+        return None
+    res, pos = resultado(texto)
+    u = chave(texto)
+    disp = u[pos:] if pos is not None else u[int(len(u) * 0.6):]
+    favoravel = res in FAVORAVEIS
+    valor = dano_moral(disp) if favoravel else None
+    return {
+        "resultado": res,
+        "sem_teor": evento_eproc(u) is not None,
+        "dano_moral": favoravel and (valor is not None or condenacao_dano_moral(disp)),
+        "valor_dano_moral": valor,
+        "repeticao_dobro": favoravel and repeticao_dobro(disp),
+    }
 
 
 def analisar(item: dict, cfg: Config) -> Analise | None:

@@ -50,6 +50,7 @@ button, input, select { font: inherit; color: inherit; }
 .campo span { font-size: 12px; font-weight: 600; color: var(--sub); letter-spacing: .03em; text-transform: uppercase; }
 .campo input, .campo select, #senha, #busca { width: 100%; padding: 9px 10px; border: 1px solid var(--line);
   border-radius: 8px; background: var(--soft); min-width: 0; }
+.campo.duplo { grid-column: span 2; }
 .mais { grid-column: 1 / -1; }
 .mais summary { cursor: pointer; color: var(--sub); font-size: 13.5px; }
 .mais-campos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.2fr); gap: 12px; margin-top: 10px; max-width: 760px; }
@@ -112,6 +113,7 @@ td a { color: var(--accent); }
 .selo { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; white-space: nowrap; }
 .selo.proc { background: var(--okbg); color: var(--ok); } .selo.parc { background: var(--warnbg); color: var(--warn); }
 .selo.improc { background: var(--badbg); color: var(--bad); } .selo.outro { background: var(--soft); color: var(--sub); }
+.dano { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--ok); }
 tr.teor td { background: var(--soft); }
 .teor-texto { white-space: pre-wrap; max-height: 420px; overflow: auto; font-size: 13.5px; line-height: 1.6; max-width: 110ch; }
 .paginacao { display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -126,6 +128,6 @@ tr.teor td { background: var(--soft); }
 @media (max-width: 640px) {
   .grade { grid-template-columns: minmax(0, 1fr); } .painel.largo { grid-column: auto; }
   .filtros, .mais-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .campo.largo { grid-column: 1 / -1; }
+  .campo.largo, .campo.duplo { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: no-preference) { .lista .barra i { transition: width .3s ease; } }
