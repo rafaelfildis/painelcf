@@ -92,19 +92,20 @@ def normalizar(item: dict) -> dict:
     }
 
 
-TETO_PAGINAS_DJEN = 40  # o DJEN não pagina além de 4.000 resultados (responde 429 na página 41)
+TETO_RESULTADOS_DJEN = 4000  # o DJEN não pagina além de 4.000 resultados (responde 429)
 
 
 def coletar(cli: ClienteDJEN, filtros: dict, inicio: date, fim: date, limite: int) -> tuple[list[dict], int, bool]:
     """Busca o período inteiro; se passar do teto de paginação do DJEN, divide o período ao meio e repete."""
     f = {**filtros, "dataDisponibilizacaoInicio": inicio.isoformat(), "dataDisponibilizacaoFim": fim.isoformat()}
     _, total, _ = cli.consultar(f, max_paginas=1)
-    if total > TETO_PAGINAS_DJEN * cli.itens_por_pagina and fim > inicio:
+    if total > TETO_RESULTADOS_DJEN and fim > inicio:
         meio = date.fromordinal(inicio.toordinal() + (fim - inicio).days // 2)
         a, ta, xa = coletar(cli, filtros, inicio, meio, limite)
         b, tb, xb = coletar(cli, filtros, date.fromordinal(meio.toordinal() + 1), fim, limite)
         return a + b, ta + tb, xa or xb
-    return cli.consultar(f, max_paginas=min(limite, TETO_PAGINAS_DJEN), paralelo=5)
+    teto = -(-TETO_RESULTADOS_DJEN // cli.itens_por_pagina)
+    return cli.consultar(f, max_paginas=min(limite, teto), paralelo=getattr(cli, "paralelo", 3))
 
 
 def publicacoes(params: dict, djen: Callable[[], ClienteDJEN] = _djen_padrao) -> dict:
@@ -141,8 +142,16 @@ def publicacoes(params: dict, djen: Callable[[], ClienteDJEN] = _djen_padrao) ->
         "numeroProcesso": processo, "siglaTribunal": tribunal,
         "dataDisponibilizacaoInicio": inicio.isoformat(), "dataDisponibilizacaoFim": fim.isoformat(),
     }
+    try:
+        por_pagina = min(max(int(params.get("por_pagina") or 100), 1), 1000)
+        paralelo = min(max(int(params.get("paralelo") or 3), 1), 6)
+    except ValueError as e:
+        raise ErroPedido("por_pagina e paralelo devem ser números.") from e
+    cli = djen()
+    cli.itens_por_pagina = por_pagina
+    cli.paralelo = paralelo
     t0 = time.monotonic()
-    itens, total, truncado = coletar(djen(), filtros, inicio, fim, limite)
+    itens, total, truncado = coletar(cli, filtros, inicio, fim, limite)
     # compacto=1 omite o texto; somente=sentencas devolve só as publicações que são sentença (para levantamentos).
     compacto = params.get("compacto") in ("1", "true", "sim")
     so_sentencas = params.get("somente") == "sentencas"
