@@ -87,6 +87,27 @@ class TestPublicacoes(unittest.TestCase):
         with self.assertRaises(api.ErroPedido):
             api.publicacoes({"parte": "X", "inicio": "2026-03-07", "fim": "2026-03-01"}, djen_falso([[]]))
 
+    def test_divide_periodo_acima_do_teto_do_djen(self):
+        # 6.000 publicações em 4 dias (1.500 por dia): acima de 4.000, o período é dividido ao meio.
+        def buscar(url):
+            from urllib.parse import parse_qs, urlsplit
+            q = {k: v[0] for k, v in parse_qs(urlsplit(url).query).items()}
+            d0, d1 = date.fromisoformat(q["dataDisponibilizacaoInicio"]), date.fromisoformat(q["dataDisponibilizacaoFim"])
+            dias = (d1 - d0).days + 1
+            total = 1500 * dias
+            pagina = int(q["pagina"])
+            if pagina > 40:
+                raise AssertionError("passou do teto de paginação do DJEN")
+            ini = (pagina - 1) * 100
+            itens = [dict(ITEM, id=d0.toordinal() * 10000 + i) for i in range(ini, min(ini + 100, total))]
+            return json.dumps({"count": total, "items": itens}).encode()
+
+        r = api.publicacoes({"parte": "AGIBANK", "inicio": "2026-03-02", "fim": "2026-03-05", "limite": "50"},
+                            lambda: ClienteDJEN(pausa=0, buscar=buscar))
+        self.assertEqual(r["total"], 6000)
+        self.assertFalse(r["truncado"])
+        self.assertEqual(r["lidos"], 6000)
+
     def test_validacoes(self):
         for params in [{}, {"uf": "BA"}, {"oab": "1", "uf": "XX"}, {"processo": "123"}, {"parte": "x", "limite": "a"}]:
             with self.assertRaises(api.ErroPedido, msg=params):
