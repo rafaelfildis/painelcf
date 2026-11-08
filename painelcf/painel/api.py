@@ -13,7 +13,7 @@ from datetime import date
 
 from ..teses.djen import BASE as DJEN_BASE
 from ..teses.djen import AcessoBloqueado, ClienteDJEN, ErroDJEN, _http_get
-from ..teses.classificador import analisar_sentenca
+from ..teses.classificador import analisar_sentenca, tema_seguro
 from ..teses.texto import limpar_html
 from .datajud import ClienteDataJud, ErroDataJud
 
@@ -86,6 +86,7 @@ def normalizar(item: dict) -> dict:
                    for d in item.get("destinatarios") or [] if d.get("nome")],
         "advogados": advogados,
         "sentenca": sentenca,
+        "seguro": tema_seguro(texto),
         "texto": texto[:TEXTO_MAX],
         "texto_cortado": len(texto) > TEXTO_MAX,
     }
@@ -117,17 +118,26 @@ def publicacoes(params: dict, djen: Callable[[], ClienteDJEN] = _djen_padrao) ->
     }
     t0 = time.monotonic()
     itens, total, truncado = djen().consultar(filtros, max_paginas=limite)
+    # compacto=1 omite o texto; somente=sentencas devolve só as publicações que são sentença (para levantamentos).
+    compacto = params.get("compacto") in ("1", "true", "sim")
+    so_sentencas = params.get("somente") == "sentencas"
     vistos, saida = set(), []
     for item in itens:
         if item.get("ativo") is False or item.get("id") in vistos:
             continue
         vistos.add(item.get("id"))
-        saida.append(normalizar(item))
+        pub = normalizar(item)
+        if so_sentencas and not pub["sentenca"]:
+            continue
+        if compacto:
+            pub.pop("texto")
+        saida.append(pub)
     saida.sort(key=lambda p: (p["data"], p["id"] or 0), reverse=True)
     return {
         "periodo": {"inicio": inicio.isoformat(), "fim": fim.isoformat()},
         "filtros": {k: v for k, v in filtros.items() if v and not k.startswith("data")},
         "total": total,
+        "lidos": len(vistos),
         "retornados": len(saida),
         "truncado": truncado,
         "segundos": round(time.monotonic() - t0, 1),

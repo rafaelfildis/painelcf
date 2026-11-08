@@ -69,6 +69,16 @@ class TestPublicacoes(unittest.TestCase):
         self.assertEqual(r["total"], 300)
         self.assertEqual(r["retornados"], 199)
 
+    def test_compacto_somente_sentencas_e_seguro(self):
+        seguro = dict(ITEM, id=11, texto="SENTENÇA. Descontos de seguro prestamista não contratado. JULGO PROCEDENTE.")
+        despacho = dict(ITEM, id=12, tipoDocumento="Despacho", texto="Cite-se.")
+        r = api.publicacoes({"parte": "AGIBANK", "compacto": "1", "somente": "sentencas"},
+                            djen_falso([[ITEM, seguro, despacho]]))
+        self.assertEqual(r["lidos"], 3)
+        self.assertEqual(sorted(p["id"] for p in r["itens"]), [10, 11])
+        self.assertTrue(all("texto" not in p for p in r["itens"]))
+        self.assertEqual({p["id"]: p["seguro"] for p in r["itens"]}, {10: False, 11: True})
+
     def test_validacoes(self):
         for params in [{}, {"uf": "BA"}, {"oab": "1", "uf": "XX"}, {"processo": "123"}, {"parte": "x", "limite": "a"}]:
             with self.assertRaises(api.ErroPedido, msg=params):

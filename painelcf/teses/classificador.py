@@ -437,6 +437,19 @@ class Analise:
     temas: list[str] = field(default_factory=list)
 
 
+# Débito de seguro não contratado: seguro prestamista, venda casada, título de capitalização.
+_SEGURO = re.compile(
+    r"SEGURO[^.]{0,80}(DESCONT|NAO\s+CONTRAT|NAO\s+RECONHEC|NAO\s+AUTORIZ|NAO\s+SOLICIT|INDEVID|PRESTAMISTA|"
+    r"VENDA\s+CASADA)|(DESCONT|COBRANCA|DEBITO)[^.]{0,60}SEGURO|VENDA\s+CASADA|TITULO\s+DE\s+CAPITALIZACAO|"
+    r"SEGURO\s+PRESTAMISTA"
+)
+
+
+def tema_seguro(texto: str) -> bool:
+    """A publicação trata de desconto/cobrança de seguro (ou título de capitalização) não contratado."""
+    return bool(_SEGURO.search(chave(texto)))
+
+
 def analisar_sentenca(tipo_documento: str | None, texto: str) -> dict | None:
     """Resultado e dano moral de uma publicação, sem filtro de vara (usado pelo painel)."""
     if not e_sentenca(tipo_documento, texto):
