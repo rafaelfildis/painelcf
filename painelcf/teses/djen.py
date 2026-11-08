@@ -13,6 +13,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable, Iterator
 from datetime import date
 
@@ -111,23 +112,35 @@ class ClienteDJEN:
 
     # ---------------------------------------------------------------- consulta livre
 
-    def consultar(self, filtros: dict, max_paginas: int = 20) -> tuple[list[dict], int, bool]:
+    def consultar(self, filtros: dict, max_paginas: int = 20, paralelo: int = 1) -> tuple[list[dict], int, bool]:
         """Consulta com filtros da API (numeroOab, nomeParte, datas...).
 
-        Retorna (itens, total informado pela API, truncado por max_paginas)."""
-        itens: list[dict] = []
-        total = None
-        for pagina in range(1, max_paginas + 1):
-            params = {**{k: v for k, v in filtros.items() if v}, "pagina": pagina,
-                      "itensPorPagina": self.itens_por_pagina}
-            dados = self._json(f"{BASE}/comunicacao?{urllib.parse.urlencode(params)}")
-            lote = dados.get("items") or []
-            if total is None:
-                total = int(dados.get("count") or 0)
-            itens += lote
-            if not lote or len(itens) >= total:
-                return itens, total, False
-            time.sleep(self.pausa)
+        Com paralelo > 1, depois da primeira página (que informa o total) as demais são buscadas em
+        paralelo. Retorna (itens, total informado pela API, truncado por max_paginas)."""
+        base = {k: v for k, v in filtros.items() if v}
+
+        def pagina(n: int) -> list[dict]:
+            params = {**base, "pagina": n, "itensPorPagina": self.itens_por_pagina}
+            return self._json(f"{BASE}/comunicacao?{urllib.parse.urlencode(params)}").get("items") or []
+
+        params = {**base, "pagina": 1, "itensPorPagina": self.itens_por_pagina}
+        dados = self._json(f"{BASE}/comunicacao?{urllib.parse.urlencode(params)}")
+        itens = dados.get("items") or []
+        total = int(dados.get("count") or 0)
+        paginas = min(max_paginas, -(-total // self.itens_por_pagina))
+        restantes = range(2, paginas + 1)
+        if itens and restantes:
+            if paralelo > 1:
+                with ThreadPoolExecutor(paralelo) as ex:
+                    for lote in ex.map(pagina, restantes):
+                        itens += lote
+            else:
+                for n in restantes:
+                    time.sleep(self.pausa)
+                    lote = pagina(n)
+                    if not lote:
+                        break
+                    itens += lote
         return itens, total or len(itens), len(itens) < (total or 0)
 
     # ---------------------------------------------------------------- caderno do dia

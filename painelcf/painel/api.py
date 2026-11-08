@@ -127,7 +127,7 @@ def publicacoes(params: dict, djen: Callable[[], ClienteDJEN] = _djen_padrao) ->
         "dataDisponibilizacaoInicio": inicio.isoformat(), "dataDisponibilizacaoFim": fim.isoformat(),
     }
     t0 = time.monotonic()
-    itens, total, truncado = djen().consultar(filtros, max_paginas=limite)
+    itens, total, truncado = djen().consultar(filtros, max_paginas=limite, paralelo=6)
     # compacto=1 omite o texto; somente=sentencas devolve só as publicações que são sentença (para levantamentos).
     compacto = params.get("compacto") in ("1", "true", "sim")
     so_sentencas = params.get("somente") == "sentencas"
