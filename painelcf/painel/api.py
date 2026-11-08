@@ -92,19 +92,22 @@ def normalizar(item: dict) -> dict:
     }
 
 
-TETO_RESULTADOS_DJEN = 4000  # o DJEN não pagina além de 4.000 resultados (responde 429)
+# O DJEN recusou (429) a página 41 com 100 itens por página. Se o teto for de páginas e não de resultados,
+# páginas de 1.000 itens alcançam mais; "teto" permite medir isso sem nova publicação.
+TETO_RESULTADOS_DJEN = 4000
 
 
 def coletar(cli: ClienteDJEN, filtros: dict, inicio: date, fim: date, limite: int) -> tuple[list[dict], int, bool]:
     """Busca o período inteiro; se passar do teto de paginação do DJEN, divide o período ao meio e repete."""
     f = {**filtros, "dataDisponibilizacaoInicio": inicio.isoformat(), "dataDisponibilizacaoFim": fim.isoformat()}
+    teto_resultados = getattr(cli, "teto_resultados", TETO_RESULTADOS_DJEN)
     _, total, _ = cli.consultar(f, max_paginas=1)
-    if total > TETO_RESULTADOS_DJEN and fim > inicio:
+    if total > teto_resultados and fim > inicio:
         meio = date.fromordinal(inicio.toordinal() + (fim - inicio).days // 2)
         a, ta, xa = coletar(cli, filtros, inicio, meio, limite)
         b, tb, xb = coletar(cli, filtros, date.fromordinal(meio.toordinal() + 1), fim, limite)
         return a + b, ta + tb, xa or xb
-    teto = -(-TETO_RESULTADOS_DJEN // cli.itens_por_pagina)
+    teto = -(-teto_resultados // cli.itens_por_pagina)
     return cli.consultar(f, max_paginas=min(limite, teto), paralelo=getattr(cli, "paralelo", 3))
 
 
@@ -150,6 +153,8 @@ def publicacoes(params: dict, djen: Callable[[], ClienteDJEN] = _djen_padrao) ->
     cli = djen()
     cli.itens_por_pagina = por_pagina
     cli.paralelo = paralelo
+    if params.get("teto"):
+        cli.teto_resultados = min(int(params["teto"]), 40000)
     t0 = time.monotonic()
     itens, total, truncado = coletar(cli, filtros, inicio, fim, limite)
     # compacto=1 omite o texto; somente=sentencas devolve só as publicações que são sentença (para levantamentos).
