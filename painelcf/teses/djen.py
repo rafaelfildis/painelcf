@@ -34,8 +34,7 @@ class AcessoBloqueado(ErroDJEN):
 Buscador = Callable[[str], bytes]
 
 
-def _http_get(url: str, tentativas: int = 6, timeout: int = 90) -> bytes:
-    espera = 5.0
+def _http_get(url: str, tentativas: int = 6, timeout: int = 90, espera: float = 5.0) -> bytes:
     for tentativa in range(1, tentativas + 1):
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
         try:
