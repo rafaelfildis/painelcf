@@ -79,6 +79,14 @@ class TestPublicacoes(unittest.TestCase):
         self.assertTrue(all("texto" not in p for p in r["itens"]))
         self.assertEqual({p["id"]: p["seguro"] for p in r["itens"]}, {10: False, 11: True})
 
+    def test_intervalo_de_datas(self):
+        urls = []
+        api.publicacoes({"parte": "AGIBANK", "inicio": "2026-03-01", "fim": "2026-03-07"}, djen_falso([[ITEM]], urls))
+        self.assertIn("dataDisponibilizacaoInicio=2026-03-01", urls[0])
+        self.assertIn("dataDisponibilizacaoFim=2026-03-07", urls[0])
+        with self.assertRaises(api.ErroPedido):
+            api.publicacoes({"parte": "X", "inicio": "2026-03-07", "fim": "2026-03-01"}, djen_falso([[]]))
+
     def test_validacoes(self):
         for params in [{}, {"uf": "BA"}, {"oab": "1", "uf": "XX"}, {"processo": "123"}, {"parte": "x", "limite": "a"}]:
             with self.assertRaises(api.ErroPedido, msg=params):

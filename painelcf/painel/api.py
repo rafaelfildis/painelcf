@@ -110,7 +110,17 @@ def publicacoes(params: dict, djen: Callable[[], ClienteDJEN] = _djen_padrao) ->
     except ValueError as e:
         raise ErroPedido("Limite inválido.") from e
 
-    inicio, fim = periodo(params.get("ano"), params.get("mes"))
+    if params.get("inicio") or params.get("fim"):
+        # Intervalo livre (AAAA-MM-DD): permite janelas menores que um mês quando o volume passa do teto do DJEN.
+        try:
+            inicio = date.fromisoformat(params.get("inicio") or params.get("fim"))
+            fim = date.fromisoformat(params.get("fim") or params.get("inicio"))
+        except ValueError as e:
+            raise ErroPedido("Datas de início e fim devem estar no formato AAAA-MM-DD.") from e
+        if fim < inicio or (fim - inicio).days > 366:
+            raise ErroPedido("Intervalo de datas inválido (máximo de um ano).")
+    else:
+        inicio, fim = periodo(params.get("ano"), params.get("mes"))
     filtros = {
         "nomeParte": parte, "nomeAdvogado": advogado, "numeroOab": oab, "ufOab": uf,
         "numeroProcesso": processo, "siglaTribunal": tribunal,
@@ -130,7 +140,8 @@ def publicacoes(params: dict, djen: Callable[[], ClienteDJEN] = _djen_padrao) ->
         if so_sentencas and not pub["sentenca"]:
             continue
         if compacto:
-            pub.pop("texto")
+            for campo in ("texto", "advogados", "hash", "meio", "texto_cortado"):
+                pub.pop(campo, None)
         saida.append(pub)
     saida.sort(key=lambda p: (p["data"], p["id"] or 0), reverse=True)
     return {
